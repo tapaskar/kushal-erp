@@ -1,0 +1,15 @@
+aws_region  = "ap-south-1"
+project     = "rwa-erp"
+stage       = "prod"
+
+db_username = "rwa_admin"
+db_password = "CHANGE_ME_strong_password_here"
+
+auth_secret = "CHANGE_ME_random_32_char_string_here!!"
+
+razorpay_key_id         = "rzp_live_XXXXXXXXXXXXX"
+razorpay_key_secret     = "XXXXXXXXXXXXXXXXXXXXXXXX"
+razorpay_webhook_secret = "XXXXXXXXXXXXXXXXXXXXXXXX"
+
+domain_name    = ""
+ses_from_email = "noreply@rwaerp.in"

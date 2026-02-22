@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# terraform — never commit credentials or state
+infrastructure/terraform/terraform.tfvars
+infrastructure/terraform/*.tfstate
+infrastructure/terraform/*.tfstate.backup
+infrastructure/terraform/.terraform/
+infrastructure/terraform/tfplan
+
+# backup files
+backup-task-def-*.json
