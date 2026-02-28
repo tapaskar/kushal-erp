@@ -9,6 +9,10 @@ import {
 } from "react-native";
 import * as Location from "expo-location";
 import * as securityApi from "../../src/api/security";
+import { Card } from "../../src/components/ui/Card";
+import { Button } from "../../src/components/ui/Button";
+import { Icon } from "../../src/components/ui/Icon";
+import { colors, typography, spacing, radii, shadows } from "../../src/theme";
 
 export default function SosScreen() {
   const [sending, setSending] = useState(false);
@@ -63,22 +67,26 @@ export default function SosScreen() {
   if (sent) {
     return (
       <View style={styles.container}>
-        <View style={styles.sentCard}>
-          <Text style={styles.sentIcon}>✅</Text>
-          <Text style={styles.sentTitle}>SOS Alert Sent</Text>
-          <Text style={styles.sentDescription}>
-            Help is on the way. Stay safe and stay at your current location if possible.
-          </Text>
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={() => {
-              setSent(false);
-              setMessage("");
-            }}
-          >
-            <Text style={styles.resetButtonText}>Send Another Alert</Text>
-          </TouchableOpacity>
-        </View>
+        <Card variant="elevated" padding="xl">
+          <View style={styles.sentContent}>
+            <View style={styles.sentIconCircle}>
+              <Icon name="check-circle" size={48} color={colors.success} filled />
+            </View>
+            <Text style={styles.sentTitle}>SOS Alert Sent</Text>
+            <Text style={styles.sentDescription}>
+              Help is on the way. Stay safe and stay at your current location if possible.
+            </Text>
+            <Button
+              title="Send Another Alert"
+              onPress={() => {
+                setSent(false);
+                setMessage("");
+              }}
+              variant="secondary"
+              icon="refresh"
+            />
+          </View>
+        </Card>
       </View>
     );
   }
@@ -95,6 +103,7 @@ export default function SosScreen() {
         value={message}
         onChangeText={setMessage}
         placeholder="Optional: describe the emergency..."
+        placeholderTextColor={colors.textMuted}
         multiline
       />
 
@@ -103,65 +112,99 @@ export default function SosScreen() {
         onPress={handleSos}
         disabled={sending}
       >
-        <Text style={styles.sosIcon}>🚨</Text>
+        <Icon name="sos" size={48} color={colors.textOnPrimary} filled />
         <Text style={styles.sosText}>
           {sending ? "SENDING..." : "SEND SOS"}
         </Text>
       </TouchableOpacity>
 
-      <Text style={styles.note}>
-        Your GPS location will be automatically shared with the alert.
-      </Text>
+      <View style={styles.noteRow}>
+        <Icon name="location" size={14} color={colors.textMuted} />
+        <Text style={styles.note}>
+          Your GPS location will be automatically shared with the alert.
+        </Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafc", padding: 16, justifyContent: "center" },
-  heading: { fontSize: 24, fontWeight: "bold", color: "#1e293b", textAlign: "center" },
-  subtitle: { fontSize: 14, color: "#64748b", textAlign: "center", marginTop: 8, marginBottom: 24 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.lg,
+    justifyContent: "center",
+  },
+  heading: {
+    ...typography.h1,
+    color: colors.textPrimary,
+    textAlign: "center",
+  },
+  subtitle: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    textAlign: "center",
+    marginTop: spacing.sm,
+    marginBottom: spacing.xxl,
+  },
   messageInput: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    padding: spacing.md,
     fontSize: 15,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: colors.border,
     height: 80,
-    marginBottom: 32,
+    marginBottom: spacing.xxxl,
     textAlignVertical: "top",
+    color: colors.textPrimary,
   },
   sosButton: {
-    backgroundColor: "#dc2626",
+    backgroundColor: colors.errorDark,
     borderRadius: 100,
     width: 200,
     height: 200,
     alignSelf: "center",
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#dc2626",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: colors.errorDark,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 10,
   },
-  sosIcon: { fontSize: 48, marginBottom: 8 },
-  sosText: { color: "#fff", fontSize: 20, fontWeight: "bold" },
-  note: { fontSize: 12, color: "#94a3b8", textAlign: "center", marginTop: 24 },
-  sentCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 32,
+  sosText: {
+    color: colors.textOnPrimary,
+    ...typography.h3,
+    fontWeight: "bold",
+    marginTop: spacing.sm,
+  },
+  noteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs,
+    marginTop: spacing.xxl,
+  },
+  note: {
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  sentContent: {
     alignItems: "center",
   },
-  sentIcon: { fontSize: 48, marginBottom: 16 },
-  sentTitle: { fontSize: 20, fontWeight: "bold", color: "#1e293b", marginBottom: 8 },
-  sentDescription: { fontSize: 14, color: "#64748b", textAlign: "center", marginBottom: 24 },
-  resetButton: {
-    backgroundColor: "#f1f5f9",
-    borderRadius: 10,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+  sentIconCircle: {
+    marginBottom: spacing.lg,
   },
-  resetButtonText: { fontSize: 14, fontWeight: "600", color: "#475569" },
+  sentTitle: {
+    ...typography.h2,
+    color: colors.textPrimary,
+    marginBottom: spacing.sm,
+  },
+  sentDescription: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    textAlign: "center",
+    marginBottom: spacing.xxl,
+  },
 });

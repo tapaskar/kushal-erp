@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, memo } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,21 +10,25 @@ import {
 import { useRouter } from "expo-router";
 import { useTaskStore } from "../../../src/store/task-store";
 import { TASK_STATUS_LABELS } from "../../../src/lib/constants";
+import { Card } from "../../../src/components/ui/Card";
+import { Badge } from "../../../src/components/ui/Badge";
+import { Icon } from "../../../src/components/ui/Icon";
+import { colors, typography, spacing, radii } from "../../../src/theme";
 import type { StaffTask } from "../../../src/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: "#f59e0b",
-  accepted: "#3b82f6",
-  in_progress: "#8b5cf6",
-  completed: "#22c55e",
-  cancelled: "#ef4444",
+  pending: colors.warning,
+  accepted: colors.info,
+  in_progress: colors.purple,
+  completed: colors.success,
+  cancelled: colors.error,
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
-  low: "#94a3b8",
-  medium: "#3b82f6",
-  high: "#f59e0b",
-  urgent: "#ef4444",
+  low: colors.textMuted,
+  medium: colors.info,
+  high: colors.warning,
+  urgent: colors.error,
 };
 
 export default function TaskListScreen() {
@@ -51,51 +55,44 @@ export default function TaskListScreen() {
   ];
 
   const renderTask = ({ item }: { item: StaffTask }) => (
-    <TouchableOpacity
-      style={styles.taskCard}
+    <Card
       onPress={() => router.push(`/(main)/tasks/${item.id}`)}
+      style={styles.taskCard}
     >
       <View style={styles.taskHeader}>
         <View
           style={[
             styles.priorityDot,
-            { backgroundColor: PRIORITY_COLORS[item.priority] || "#94a3b8" },
+            { backgroundColor: PRIORITY_COLORS[item.priority] || colors.textMuted },
           ]}
         />
         <Text style={styles.taskType}>{item.taskType.replace("_", " ")}</Text>
-        <View
-          style={[
-            styles.statusBadge,
-            {
-              backgroundColor:
-                (STATUS_COLORS[item.status] || "#94a3b8") + "20",
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusText,
-              { color: STATUS_COLORS[item.status] || "#94a3b8" },
-            ]}
-          >
-            {TASK_STATUS_LABELS[item.status] || item.status}
-          </Text>
-        </View>
+        <Badge
+          label={TASK_STATUS_LABELS[item.status] || item.status}
+          color={STATUS_COLORS[item.status] || colors.textMuted}
+          size="sm"
+        />
       </View>
       <Text style={styles.taskTitle} numberOfLines={2}>
         {item.title}
       </Text>
       {item.location && (
-        <Text style={styles.taskLocation} numberOfLines={1}>
-          📍 {item.location}
-        </Text>
+        <View style={styles.taskLocationRow}>
+          <Icon name="location" size={14} color={colors.textTertiary} />
+          <Text style={styles.taskLocation} numberOfLines={1}>
+            {item.location}
+          </Text>
+        </View>
       )}
       {item.dueBy && (
-        <Text style={styles.taskDue}>
-          Due: {new Date(item.dueBy).toLocaleDateString()}
-        </Text>
+        <View style={styles.taskDueRow}>
+          <Icon name="calendar" size={12} color={colors.textMuted} />
+          <Text style={styles.taskDue}>
+            Due: {new Date(item.dueBy).toLocaleDateString()}
+          </Text>
+        </View>
       )}
-    </TouchableOpacity>
+    </Card>
   );
 
   return (
@@ -132,10 +129,16 @@ export default function TaskListScreen() {
         maxToRenderPerBatch={15}
         windowSize={10}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
+            <Icon name="tasks" size={40} color={colors.border} />
             <Text style={styles.emptyText}>
               {isLoading ? "Loading tasks..." : "No tasks found"}
             </Text>
@@ -147,52 +150,82 @@ export default function TaskListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafc" },
+  container: { flex: 1, backgroundColor: colors.background },
   filterRow: {
     flexDirection: "row",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
   },
   filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#fff",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: colors.border,
   },
   filterChipActive: {
-    backgroundColor: "#1a56db",
-    borderColor: "#1a56db",
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  filterText: { fontSize: 13, color: "#64748b", fontWeight: "500" },
-  filterTextActive: { color: "#fff" },
-  list: { padding: 16, gap: 10 },
+  filterText: {
+    ...typography.captionMedium,
+    color: colors.textTertiary,
+  },
+  filterTextActive: { color: colors.textOnPrimary },
+  list: { padding: spacing.lg, gap: spacing.sm },
   taskCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    marginBottom: 0,
   },
-  taskHeader: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  priorityDot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+  taskHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing.sm,
+  },
+  priorityDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: spacing.sm,
+  },
   taskType: {
-    fontSize: 11,
-    color: "#64748b",
-    textTransform: "uppercase",
-    fontWeight: "600",
+    ...typography.overline,
+    color: colors.textTertiary,
     flex: 1,
   },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  statusText: { fontSize: 11, fontWeight: "600" },
-  taskTitle: { fontSize: 15, fontWeight: "600", color: "#1e293b" },
-  taskLocation: { fontSize: 13, color: "#64748b", marginTop: 6 },
-  taskDue: { fontSize: 12, color: "#94a3b8", marginTop: 4 },
-  empty: { alignItems: "center", paddingTop: 40 },
-  emptyText: { color: "#94a3b8", fontSize: 14 },
+  taskTitle: {
+    ...typography.bodySemibold,
+    color: colors.textPrimary,
+  },
+  taskLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  taskLocation: {
+    ...typography.caption,
+    color: colors.textTertiary,
+    flex: 1,
+  },
+  taskDueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  taskDue: {
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  empty: {
+    alignItems: "center",
+    paddingTop: 60,
+    gap: spacing.md,
+  },
+  emptyText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
 });

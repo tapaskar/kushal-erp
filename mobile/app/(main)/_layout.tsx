@@ -1,24 +1,28 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
 import { useAuthStore } from "../../src/store/auth-store";
 import { BackButton } from "../../src/components/BackButton";
+import { Icon, type IconName } from "../../src/components/ui/Icon";
+import { colors, spacing } from "../../src/theme";
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
-  const icons: Record<string, string> = {
-    index: "🏠",
-    "tasks/index": "📋",
-    "patrol/index": "🛡️",
-    "shifts/index": "⏰",
-    profile: "👤",
-    "visitors/index": "🚪",
-    "cleaning/index": "✨",
-    "inventory/index": "📦",
-    "reports/index": "📊",
+  const icons: Record<string, IconName> = {
+    index: "home",
+    "tasks/index": "tasks",
+    "patrol/index": "shield",
+    "shifts/index": "clock",
+    profile: "person",
+    "visitors/index": "visitors",
+    "cleaning/index": "cleaning",
+    "inventory/index": "inventory",
+    "reports/index": "reports",
   };
   return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.5 }}>
-      {icons[name] || "•"}
-    </Text>
+    <Icon
+      name={icons[name] || "home"}
+      size={22}
+      color={focused ? colors.primary : colors.textMuted}
+      filled={focused}
+    />
   );
 }
 
@@ -31,20 +35,34 @@ export default function MainLayout() {
   const isSupervisor = role === "supervisor";
   const isTechnical = ["maintenance", "electrician", "plumber"].includes(role);
 
+  // Shared options for hidden detail screens
+  const detailScreen = (title: string) => ({
+    href: null as any,
+    title,
+    headerBackVisible: false,
+    headerLeft: () => <BackButton />,
+  });
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#1a56db",
-        tabBarInactiveTintColor: "#94a3b8",
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopColor: "#e2e8f0",
-          height: 60,
-          paddingBottom: 8,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+          height: 64,
+          paddingBottom: spacing.sm,
+          paddingTop: spacing.xs,
         },
-        headerStyle: { backgroundColor: "#1a56db" },
-        headerTintColor: "#fff",
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: "500",
+        },
+        headerStyle: { backgroundColor: colors.primary },
+        headerTintColor: colors.textOnPrimary,
         headerTitleStyle: { fontWeight: "600" },
+        headerShadowVisible: false,
       }}
     >
       {/* ── Core tabs (all roles) ── */}
@@ -149,71 +167,23 @@ export default function MainLayout() {
         }}
       />
 
-      {/* ── Hidden detail screens (with back button) ── */}
-      <Tabs.Screen
-        name="tasks/[taskId]"
-        options={{ href: null, title: "Task Detail", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="patrol/[patrolLogId]"
-        options={{ href: null, title: "Active Patrol", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="shifts/clock"
-        options={{ href: null, title: "Clock In/Out", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="visitors/new"
-        options={{ href: null, title: "New Visitor", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="visitors/[visitorId]"
-        options={{ href: null, title: "Visitor Detail", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="incidents/index"
-        options={{ href: null, title: "Incidents", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="incidents/new"
-        options={{ href: null, title: "Report Incident", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="sos"
-        options={{ href: null, title: "SOS Alert", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="cleaning/[logId]"
-        options={{ href: null, title: "Clean Zone", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="cleaning/supplies"
-        options={{ href: null, title: "Supplies", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="inventory/[itemId]"
-        options={{ href: null, title: "Item Detail", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="inventory/scan"
-        options={{ href: null, title: "Scan Barcode", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="scan-qr"
-        options={{ href: null, title: "Scan QR", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="reports/attendance"
-        options={{ href: null, title: "Attendance Report", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="reports/cleaning"
-        options={{ href: null, title: "Cleaning Report", headerLeft: () => <BackButton /> }}
-      />
-      <Tabs.Screen
-        name="reports/security"
-        options={{ href: null, title: "Security Report", headerLeft: () => <BackButton /> }}
-      />
+      {/* ── Hidden detail screens (with back button, no native back) ── */}
+      <Tabs.Screen name="tasks/[taskId]" options={detailScreen("Task Detail")} />
+      <Tabs.Screen name="patrol/[patrolLogId]" options={detailScreen("Active Patrol")} />
+      <Tabs.Screen name="shifts/clock" options={detailScreen("Clock In/Out")} />
+      <Tabs.Screen name="visitors/new" options={detailScreen("New Visitor")} />
+      <Tabs.Screen name="visitors/[visitorId]" options={detailScreen("Visitor Detail")} />
+      <Tabs.Screen name="incidents/index" options={detailScreen("Incidents")} />
+      <Tabs.Screen name="incidents/new" options={detailScreen("Report Incident")} />
+      <Tabs.Screen name="sos" options={detailScreen("SOS Alert")} />
+      <Tabs.Screen name="cleaning/[logId]" options={detailScreen("Clean Zone")} />
+      <Tabs.Screen name="cleaning/supplies" options={detailScreen("Supplies")} />
+      <Tabs.Screen name="inventory/[itemId]" options={detailScreen("Item Detail")} />
+      <Tabs.Screen name="inventory/scan" options={detailScreen("Scan Barcode")} />
+      <Tabs.Screen name="scan-qr" options={detailScreen("Scan QR")} />
+      <Tabs.Screen name="reports/attendance" options={detailScreen("Attendance Report")} />
+      <Tabs.Screen name="reports/cleaning" options={detailScreen("Cleaning Report")} />
+      <Tabs.Screen name="reports/security" options={detailScreen("Security Report")} />
     </Tabs>
   );
 }

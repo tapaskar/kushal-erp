@@ -8,13 +8,17 @@ import {
 } from "react-native";
 import { useShiftStore } from "../../../src/store/shift-store";
 import { SHIFT_STATUS_LABELS } from "../../../src/lib/constants";
+import { Card } from "../../../src/components/ui/Card";
+import { Badge } from "../../../src/components/ui/Badge";
+import { Icon } from "../../../src/components/ui/Icon";
+import { colors, typography, spacing } from "../../../src/theme";
 import type { Shift } from "../../../src/lib/types";
 
 const STATUS_COLORS: Record<string, string> = {
-  scheduled: "#94a3b8",
-  checked_in: "#22c55e",
-  checked_out: "#3b82f6",
-  missed: "#ef4444",
+  scheduled: colors.textMuted,
+  checked_in: colors.success,
+  checked_out: colors.info,
+  missed: colors.error,
   cancelled: "#6b7280",
 };
 
@@ -45,33 +49,22 @@ export default function ShiftListScreen() {
         : null;
 
     return (
-      <View style={styles.card}>
+      <Card style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.date}>
-            {new Date(item.date).toLocaleDateString("en-IN", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-            })}
-          </Text>
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor:
-                  (STATUS_COLORS[item.status] || "#94a3b8") + "20",
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.statusText,
-                { color: STATUS_COLORS[item.status] || "#94a3b8" },
-              ]}
-            >
-              {SHIFT_STATUS_LABELS[item.status] || item.status}
+          <View style={styles.dateRow}>
+            <Icon name="calendar" size={14} color={colors.textTertiary} />
+            <Text style={styles.date}>
+              {new Date(item.date).toLocaleDateString("en-IN", {
+                weekday: "short",
+                day: "numeric",
+                month: "short",
+              })}
             </Text>
           </View>
+          <Badge
+            label={SHIFT_STATUS_LABELS[item.status] || item.status}
+            color={STATUS_COLORS[item.status] || colors.textMuted}
+          />
         </View>
 
         <View style={styles.timeRow}>
@@ -108,9 +101,12 @@ export default function ShiftListScreen() {
         </View>
 
         {hoursWorked && (
-          <Text style={styles.hoursWorked}>{hoursWorked} hours worked</Text>
+          <View style={styles.hoursRow}>
+            <Icon name="clock" size={14} color={colors.success} />
+            <Text style={styles.hoursWorked}>{hoursWorked} hours worked</Text>
+          </View>
         )}
-      </View>
+      </Card>
     );
   };
 
@@ -125,10 +121,16 @@ export default function ShiftListScreen() {
         maxToRenderPerBatch={15}
         windowSize={10}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
         }
         ListEmptyComponent={
           <View style={styles.empty}>
+            <Icon name="clock" size={40} color={colors.border} />
             <Text style={styles.emptyText}>
               {isLoading ? "Loading shifts..." : "No shift history"}
             </Text>
@@ -140,37 +142,55 @@ export default function ShiftListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafc" },
-  list: { padding: 16, gap: 10 },
+  container: { flex: 1, backgroundColor: colors.background },
+  list: { padding: spacing.lg, gap: spacing.sm },
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    marginBottom: 0,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: spacing.sm,
   },
-  date: { fontSize: 15, fontWeight: "600", color: "#1e293b" },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 },
-  statusText: { fontSize: 11, fontWeight: "600" },
-  timeRow: { flexDirection: "row", gap: 20 },
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  date: {
+    ...typography.bodySemibold,
+    color: colors.textPrimary,
+  },
+  timeRow: { flexDirection: "row", gap: spacing.xl },
   timeBlock: {},
-  timeLabel: { fontSize: 11, color: "#94a3b8", marginBottom: 2 },
-  timeValue: { fontSize: 14, color: "#475569", fontWeight: "500" },
-  hoursWorked: {
-    fontSize: 13,
-    color: "#22c55e",
-    fontWeight: "600",
-    marginTop: 8,
+  timeLabel: {
+    ...typography.overline,
+    color: colors.textMuted,
+    marginBottom: 2,
   },
-  empty: { alignItems: "center", paddingTop: 40 },
-  emptyText: { color: "#94a3b8", fontSize: 14 },
+  timeValue: {
+    ...typography.bodyMedium,
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
+  hoursRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  hoursWorked: {
+    ...typography.captionSemibold,
+    color: colors.success,
+  },
+  empty: {
+    alignItems: "center",
+    paddingTop: 60,
+    gap: spacing.md,
+  },
+  emptyText: {
+    ...typography.caption,
+    color: colors.textMuted,
+  },
 });

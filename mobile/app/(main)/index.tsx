@@ -1,33 +1,31 @@
 import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "../../src/store/auth-store";
 import { useShiftStore } from "../../src/store/shift-store";
 import { useTaskStore } from "../../src/store/task-store";
 import { STAFF_ROLES, SHIFT_STATUS_LABELS } from "../../src/lib/constants";
+import { Card } from "../../src/components/ui/Card";
+import { Badge } from "../../src/components/ui/Badge";
+import { Icon, type IconName } from "../../src/components/ui/Icon";
+import { colors, typography, spacing, radii, shadows } from "../../src/theme";
 
 interface QuickAction {
-  icon: string;
+  icon: IconName;
   label: string;
   route: string;
 }
 
 function getQuickActions(role: string): QuickAction[] {
-  const viewTasks = { icon: "📋", label: "View Tasks", route: "/(main)/tasks" };
-  const startPatrol = { icon: "🛡️", label: "Start Patrol", route: "/(main)/patrol" };
-  const shiftHistory = { icon: "⏰", label: "Shift History", route: "/(main)/shifts" };
-  const scanQr = { icon: "📷", label: "Scan QR", route: "/(main)/scan-qr" };
-  const startCleaning = { icon: "✨", label: "Start Cleaning", route: "/(main)/cleaning" };
-  const viewReports = { icon: "📊", label: "View Reports", route: "/(main)/reports" };
-  const reportIncident = { icon: "🚨", label: "Report Incident", route: "/(main)/incidents/new" };
-  const inventory = { icon: "📦", label: "Inventory", route: "/(main)/inventory" };
+  const viewTasks: QuickAction = { icon: "tasks", label: "View Tasks", route: "/(main)/tasks" };
+  const startPatrol: QuickAction = { icon: "shield", label: "Start Patrol", route: "/(main)/patrol" };
+  const shiftHistory: QuickAction = { icon: "clock", label: "Shift History", route: "/(main)/shifts" };
+  const scanQr: QuickAction = { icon: "qr-scan", label: "Scan QR", route: "/(main)/scan-qr" };
+  const startCleaning: QuickAction = { icon: "cleaning", label: "Start Cleaning", route: "/(main)/cleaning" };
+  const viewReports: QuickAction = { icon: "reports", label: "View Reports", route: "/(main)/reports" };
+  const reportIncident: QuickAction = { icon: "incident", label: "Report Incident", route: "/(main)/incidents/new" };
+  const inventory: QuickAction = { icon: "inventory", label: "Inventory", route: "/(main)/inventory" };
 
   switch (role) {
     case "security":
@@ -72,125 +70,148 @@ export default function DashboardScreen() {
     (t) => t.status === "pending" || t.status === "accepted"
   );
   const inProgressTasks = tasks.filter((t) => t.status === "in_progress");
+  const completedTasks = tasks.filter((t) => t.status === "completed");
+
+  const statCards = [
+    { count: pendingTasks.length, label: "Pending", color: colors.warningDark, bg: colors.warningBg, icon: "clock" as IconName },
+    { count: inProgressTasks.length, label: "In Progress", color: colors.infoDark, bg: colors.infoBg, icon: "refresh" as IconName },
+    { count: completedTasks.length, label: "Completed", color: colors.successDark, bg: colors.successBg, icon: "check-circle" as IconName },
+  ];
 
   return (
     <ScrollView
       style={styles.container}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
       }
     >
-      {/* Welcome */}
-      <View style={styles.welcomeCard}>
-        <Text style={styles.greeting}>
-          Hello, {staff?.name?.split(" ")[0] || "Staff"}
-        </Text>
-        <Text style={styles.role}>
-          {STAFF_ROLES[staff?.role || ""] || staff?.role} at{" "}
-          {society?.name || "Society"}
-        </Text>
-      </View>
+      {/* ── Welcome Card ── */}
+      <LinearGradient
+        colors={[colors.primaryDark, colors.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.welcomeCard}
+      >
+        <View style={styles.welcomeRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.greeting}>
+              Hello, {staff?.name?.split(" ")[0] || "Staff"}
+            </Text>
+            <Text style={styles.role}>
+              {STAFF_ROLES[staff?.role || ""] || staff?.role} at{" "}
+              {society?.name || "Society"}
+            </Text>
+          </View>
+          <View style={styles.welcomeIconCircle}>
+            <Icon name="person" size={28} color={colors.primary} filled />
+          </View>
+        </View>
+      </LinearGradient>
 
-      {/* Current Shift */}
+      {/* ── Current Shift ── */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Today's Shift</Text>
         {currentShift ? (
-          <TouchableOpacity
-            style={styles.shiftCard}
+          <Card
+            variant="elevated"
             onPress={() => router.push("/(main)/shifts/clock")}
           >
             <View style={styles.shiftRow}>
-              <Text style={styles.shiftTime}>
-                {new Date(currentShift.scheduledStart).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}{" "}
-                -{" "}
-                {new Date(currentShift.scheduledEnd).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  currentShift.status === "checked_in"
-                    ? styles.statusActive
-                    : styles.statusScheduled,
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {SHIFT_STATUS_LABELS[currentShift.status] ||
-                    currentShift.status}
+              <View style={styles.shiftTimeContainer}>
+                <Icon name="clock" size={18} color={colors.primary} />
+                <Text style={styles.shiftTime}>
+                  {new Date(currentShift.scheduledStart).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}{" "}
+                  -{" "}
+                  {new Date(currentShift.scheduledEnd).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </Text>
               </View>
+              <Badge
+                label={
+                  SHIFT_STATUS_LABELS[currentShift.status] ||
+                  currentShift.status
+                }
+                color={
+                  currentShift.status === "checked_in"
+                    ? colors.success
+                    : colors.textMuted
+                }
+              />
             </View>
-            {currentShift.status === "scheduled" && (
-              <Text style={styles.shiftAction}>Tap to check in</Text>
+            {(currentShift.status === "scheduled" ||
+              currentShift.status === "checked_in") && (
+              <Text style={styles.shiftAction}>
+                {currentShift.status === "scheduled"
+                  ? "Tap to check in"
+                  : "Tap to check out"}
+              </Text>
             )}
-            {currentShift.status === "checked_in" && (
-              <Text style={styles.shiftAction}>Tap to check out</Text>
-            )}
-          </TouchableOpacity>
+          </Card>
         ) : (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyText}>No shift scheduled for today</Text>
-          </View>
+          <Card variant="outlined">
+            <View style={{ alignItems: "center", paddingVertical: spacing.sm }}>
+              <Text style={styles.emptyText}>
+                No shift scheduled for today
+              </Text>
+            </View>
+          </Card>
         )}
       </View>
 
-      {/* Task Summary */}
+      {/* ── Task Summary ── */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Tasks</Text>
         <View style={styles.statsRow}>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: "#fef3c7" }]}
-            onPress={() => router.push("/(main)/tasks")}
-          >
-            <Text style={[styles.statNumber, { color: "#d97706" }]}>
-              {pendingTasks.length}
-            </Text>
-            <Text style={styles.statLabel}>Pending</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: "#dbeafe" }]}
-            onPress={() => router.push("/(main)/tasks")}
-          >
-            <Text style={[styles.statNumber, { color: "#2563eb" }]}>
-              {inProgressTasks.length}
-            </Text>
-            <Text style={styles.statLabel}>In Progress</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: "#dcfce7" }]}
-            onPress={() => router.push("/(main)/tasks")}
-          >
-            <Text style={[styles.statNumber, { color: "#16a34a" }]}>
-              {tasks.filter((t) => t.status === "completed").length}
-            </Text>
-            <Text style={styles.statLabel}>Completed</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Quick Actions */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsGrid}>
-          {getQuickActions(staff?.role || "").map((action) => (
-            <TouchableOpacity
-              key={action.label}
-              style={styles.actionButton}
-              onPress={() => router.push(action.route as any)}
+          {statCards.map((s) => (
+            <Card
+              key={s.label}
+              variant="outlined"
+              padding="md"
+              onPress={() => router.push("/(main)/tasks")}
+              style={[styles.statCard, { backgroundColor: s.bg }]}
             >
-              <Text style={styles.actionIcon}>{action.icon}</Text>
-              <Text style={styles.actionLabel}>{action.label}</Text>
-            </TouchableOpacity>
+              <View style={styles.statIconRow}>
+                <Icon name={s.icon} size={16} color={s.color} />
+              </View>
+              <Text style={[styles.statNumber, { color: s.color }]}>
+                {s.count}
+              </Text>
+              <Text style={styles.statLabel}>{s.label}</Text>
+            </Card>
           ))}
         </View>
       </View>
 
-      <View style={{ height: 30 }} />
+      {/* ── Quick Actions ── */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionsGrid}>
+          {getQuickActions(staff?.role || "").map((action) => (
+            <Card
+              key={action.label}
+              onPress={() => router.push(action.route as any)}
+              style={styles.actionButton}
+            >
+              <View style={styles.actionIconCircle}>
+                <Icon name={action.icon} size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </Card>
+          ))}
+        </View>
+      </View>
+
+      <View style={{ height: spacing.xxxl }} />
     </ScrollView>
   );
 }
@@ -198,127 +219,105 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: colors.background,
   },
   welcomeCard: {
-    backgroundColor: "#1a56db",
-    padding: 24,
-    paddingTop: 16,
+    paddingHorizontal: spacing.xxl,
+    paddingVertical: spacing.xl,
+  },
+  welcomeRow: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   greeting: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#fff",
+    ...typography.h2,
+    color: colors.textOnPrimary,
   },
   role: {
-    fontSize: 14,
-    color: "#bfdbfe",
-    marginTop: 4,
+    ...typography.caption,
+    color: colors.textOnPrimaryMuted,
+    marginTop: spacing.xs,
+  },
+  welcomeIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   section: {
-    padding: 16,
+    padding: spacing.lg,
+    paddingBottom: 0,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-    marginBottom: 12,
-  },
-  shiftCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
+    ...typography.subtitle,
+    color: colors.textPrimary,
+    marginBottom: spacing.md,
   },
   shiftRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+  shiftTimeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
   shiftTime: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1e293b",
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  statusActive: {
-    backgroundColor: "#dcfce7",
-  },
-  statusScheduled: {
-    backgroundColor: "#f1f5f9",
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#374151",
+    ...typography.h3,
+    color: colors.textPrimary,
   },
   shiftAction: {
-    fontSize: 13,
-    color: "#1a56db",
-    fontWeight: "500",
-    marginTop: 8,
-  },
-  emptyCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 24,
-    alignItems: "center",
+    ...typography.captionMedium,
+    color: colors.primary,
+    marginTop: spacing.sm,
   },
   emptyText: {
-    color: "#94a3b8",
-    fontSize: 14,
+    ...typography.caption,
+    color: colors.textMuted,
   },
   statsRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: spacing.sm,
   },
   statCard: {
     flex: 1,
-    borderRadius: 12,
-    padding: 16,
     alignItems: "center",
+    borderWidth: 0,
+  },
+  statIconRow: {
+    marginBottom: spacing.xs,
   },
   statNumber: {
-    fontSize: 24,
-    fontWeight: "bold",
+    ...typography.statNumber,
   },
   statLabel: {
-    fontSize: 12,
-    color: "#64748b",
-    marginTop: 4,
+    ...typography.statLabel,
+    color: colors.textTertiary,
+    marginTop: 2,
   },
   actionsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
+    gap: spacing.sm,
   },
   actionButton: {
     width: "47%" as any,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
   },
-  actionIcon: {
-    fontSize: 24,
-    marginBottom: 6,
+  actionIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.full,
+    backgroundColor: colors.primaryBgLight,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: spacing.sm,
   },
   actionLabel: {
-    fontSize: 12,
-    color: "#475569",
-    fontWeight: "500",
+    ...typography.captionMedium,
+    color: colors.textSecondary,
   },
 });

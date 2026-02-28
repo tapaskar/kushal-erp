@@ -3,6 +3,7 @@ import { Slot, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "../src/store/auth-store";
 import { View, ActivityIndicator } from "react-native";
+import { colors } from "../src/theme";
 
 export default function RootLayout() {
   const { isAuthenticated, isLoading, initialize, staff } = useAuthStore();
@@ -32,15 +33,22 @@ export default function RootLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#fff" }}>
-        <ActivityIndicator size="large" color="#1a56db" />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.surface,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <>
-      <StatusBar style="light" backgroundColor="#1a56db" />
+      <StatusBar style="light" backgroundColor={colors.primary} />
       <Slot />
     </>
   );
