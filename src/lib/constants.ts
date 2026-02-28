@@ -40,7 +40,23 @@ export const NAV_ITEMS = [
   { label: "Procurement", href: "/procurement", icon: "ShoppingCart" },
   { label: "Notices", href: "/notices", icon: "Bell" },
   { label: "Complaints", href: "/complaints", icon: "MessageSquare" },
+  { label: "Staff", href: "/staff", icon: "UserCog" },
+  { label: "Housekeeping", href: "/housekeeping", icon: "Sparkles" },
   { label: "Reports", href: "/reports", icon: "BarChart3" },
+] as const;
+
+export const STAFF_SUB_NAV = [
+  { label: "Overview", href: "/staff", icon: "UserCog" },
+  { label: "Shifts", href: "/staff/shifts", icon: "Clock" },
+  { label: "Tasks", href: "/staff/tasks", icon: "ClipboardList" },
+  { label: "Patrols", href: "/staff/patrols", icon: "Shield" },
+  { label: "Beacons", href: "/staff/beacons", icon: "Radio" },
+  { label: "Visitors", href: "/staff/visitors", icon: "DoorOpen" },
+  { label: "Incidents", href: "/staff/incidents", icon: "AlertTriangle" },
+  { label: "SOS Alerts", href: "/staff/sos", icon: "Siren" },
+  { label: "Cleaning", href: "/staff/cleaning", icon: "Sparkles" },
+  { label: "Supplies", href: "/staff/supplies", icon: "Package" },
+  { label: "Reports", href: "/staff/reports", icon: "BarChart3" },
 ] as const;
 
 export const ASSET_CATEGORIES = [
@@ -143,6 +159,89 @@ export const ADMIN_NAV_ITEMS = [
   { label: "Dashboard", href: "/admin", icon: "LayoutDashboard" },
   { label: "Societies", href: "/admin/societies", icon: "Building2" },
   { label: "Users", href: "/admin/users", icon: "Users" },
+] as const;
+
+export const STAFF_ROLES = [
+  { value: "security", label: "Security" },
+  { value: "housekeeping", label: "Housekeeping" },
+  { value: "maintenance", label: "Maintenance" },
+  { value: "gardener", label: "Gardener" },
+  { value: "electrician", label: "Electrician" },
+  { value: "plumber", label: "Plumber" },
+  { value: "supervisor", label: "Supervisor" },
+] as const;
+
+export const SHIFT_STATUS_COLORS: Record<string, string> = {
+  scheduled: "bg-gray-100 text-gray-700",
+  checked_in: "bg-green-100 text-green-700",
+  checked_out: "bg-blue-100 text-blue-700",
+  missed: "bg-red-100 text-red-700",
+  cancelled: "bg-gray-100 text-gray-500",
+};
+
+export const STAFF_TASK_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-gray-100 text-gray-700",
+  accepted: "bg-blue-100 text-blue-700",
+  in_progress: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-100 text-green-700",
+  cancelled: "bg-red-100 text-red-700",
+};
+
+export const PATROL_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-gray-100 text-gray-700",
+  in_progress: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-100 text-green-700",
+  missed: "bg-red-100 text-red-700",
+  partial: "bg-orange-100 text-orange-700",
+};
+
+export const VISITOR_STATUS_COLORS: Record<string, string> = {
+  expected: "bg-yellow-100 text-yellow-700",
+  checked_in: "bg-green-100 text-green-700",
+  checked_out: "bg-blue-100 text-blue-700",
+  rejected: "bg-red-100 text-red-700",
+};
+
+export const INCIDENT_SEVERITY_COLORS: Record<string, string> = {
+  low: "bg-green-100 text-green-700",
+  medium: "bg-yellow-100 text-yellow-700",
+  high: "bg-orange-100 text-orange-700",
+  critical: "bg-red-100 text-red-700",
+};
+
+export const INCIDENT_STATUS_COLORS: Record<string, string> = {
+  reported: "bg-gray-100 text-gray-700",
+  investigating: "bg-yellow-100 text-yellow-700",
+  resolved: "bg-green-100 text-green-700",
+  escalated: "bg-red-100 text-red-700",
+};
+
+export const CLEANING_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-gray-100 text-gray-700",
+  in_progress: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-100 text-green-700",
+  verified: "bg-blue-100 text-blue-700",
+  issue_reported: "bg-red-100 text-red-700",
+};
+
+export const VISITOR_TYPES = [
+  { value: "guest", label: "Guest" },
+  { value: "delivery", label: "Delivery" },
+  { value: "cab", label: "Cab" },
+  { value: "vendor", label: "Vendor" },
+  { value: "service", label: "Service" },
+  { value: "other", label: "Other" },
+] as const;
+
+export const CLEANING_ZONE_TYPES = [
+  { value: "common_area", label: "Common Area" },
+  { value: "staircase", label: "Staircase" },
+  { value: "lobby", label: "Lobby" },
+  { value: "parking", label: "Parking" },
+  { value: "garden", label: "Garden" },
+  { value: "terrace", label: "Terrace" },
+  { value: "gym", label: "Gym" },
+  { value: "pool", label: "Pool" },
 ] as const;
 
 export const MAINTENANCE_FREQUENCIES = [

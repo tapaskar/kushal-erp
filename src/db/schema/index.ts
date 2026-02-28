@@ -10,3 +10,7 @@ export * from "./notices";
 export * from "./complaints";
 export * from "./inventory";
 export * from "./procurement";
+export * from "./staff";
+export * from "./security";
+export * from "./housekeeping";
+export * from "./material-usage";

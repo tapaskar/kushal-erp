@@ -17,6 +17,8 @@ import {
   BarChart3,
   Store,
   ShoppingCart,
+  UserCog,
+  Sparkles,
 } from "lucide-react";
 import { Logo } from "@/components/ui/logo";
 
@@ -33,23 +35,40 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   BarChart3,
   Store,
   ShoppingCart,
+  UserCog,
+  Sparkles,
 };
 
 export function Sidebar({ mobile }: { mobile?: boolean }) {
   const pathname = usePathname();
 
   return (
-    <aside className={mobile
-      ? "flex flex-col w-full h-full border-r bg-card"
-      : "hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r bg-card"
-    }>
-      <div className="flex h-14 items-center px-4 border-b">
-        <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <Logo className="h-6 w-6 text-primary" />
-          Kushal-RWA
+    <aside
+      className={
+        mobile
+          ? "flex flex-col w-full h-full bg-sidebar"
+          : "hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-sidebar"
+      }
+    >
+      {/* Brand */}
+      <div className="flex h-16 items-center px-5 border-b border-sidebar-border shrink-0">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sidebar-primary/15 shrink-0">
+            <Logo className="h-5 w-5 text-sidebar-primary" />
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sidebar-foreground font-bold text-sm tracking-tight">
+              Kushal-RWA
+            </span>
+            <span className="text-sidebar-foreground/40 text-[10px] uppercase tracking-widest font-medium">
+              Society ERP
+            </span>
+          </div>
         </Link>
       </div>
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = iconMap[item.icon];
           const isActive =
@@ -62,18 +81,32 @@ export function Sidebar({ mobile }: { mobile?: boolean }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
             >
-              {Icon && <Icon className="h-4 w-4" />}
+              {Icon && (
+                <Icon
+                  className={cn(
+                    "h-4 w-4 shrink-0 transition-colors",
+                    isActive ? "text-sidebar-primary" : "text-sidebar-foreground/45"
+                  )}
+                />
+              )}
               {item.label}
             </Link>
           );
         })}
       </nav>
+
+      {/* Footer */}
+      <div className="px-4 py-3 border-t border-sidebar-border shrink-0">
+        <p className="text-[10px] text-sidebar-foreground/25 text-center tracking-widest uppercase">
+          Kushal-RWA · v2.0
+        </p>
+      </div>
     </aside>
   );
 }

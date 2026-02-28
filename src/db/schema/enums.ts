@@ -238,3 +238,102 @@ export const poStatusEnum = pgEnum("po_status", [
   "delivered",
   "cancelled",
 ]);
+
+// --- Staff Tracking ---
+export const staffRoleEnum = pgEnum("staff_role", [
+  "security",
+  "housekeeping",
+  "maintenance",
+  "gardener",
+  "electrician",
+  "plumber",
+  "supervisor",
+]);
+
+export const shiftStatusEnum = pgEnum("shift_status", [
+  "scheduled",
+  "checked_in",
+  "checked_out",
+  "missed",
+  "cancelled",
+]);
+
+export const staffTaskStatusEnum = pgEnum("staff_task_status", [
+  "pending",
+  "accepted",
+  "in_progress",
+  "completed",
+  "cancelled",
+]);
+
+export const staffTaskTypeEnum = pgEnum("staff_task_type", [
+  "complaint",
+  "maintenance",
+  "patrol",
+  "ad_hoc",
+  "inspection",
+]);
+
+export const patrolStatusEnum = pgEnum("patrol_status", [
+  "pending",
+  "in_progress",
+  "completed",
+  "missed",
+  "partial",
+]);
+
+export const locationSourceEnum = pgEnum("location_source", [
+  "gps",
+  "geofence_enter",
+  "geofence_exit",
+  "beacon",
+  "manual",
+]);
+
+// --- Visitors ---
+export const visitorTypeEnum = pgEnum("visitor_type", [
+  "guest",
+  "delivery",
+  "cab",
+  "vendor",
+  "service",
+  "other",
+]);
+
+export const visitorStatusEnum = pgEnum("visitor_status", [
+  "expected",
+  "checked_in",
+  "checked_out",
+  "rejected",
+]);
+
+// --- Security Incidents ---
+export const incidentSeverityEnum = pgEnum("incident_severity", [
+  "low",
+  "medium",
+  "high",
+  "critical",
+]);
+
+export const incidentStatusEnum = pgEnum("incident_status", [
+  "reported",
+  "investigating",
+  "resolved",
+  "escalated",
+]);
+
+// --- Housekeeping ---
+export const cleaningStatusEnum = pgEnum("cleaning_status", [
+  "pending",
+  "in_progress",
+  "completed",
+  "verified",
+  "issue_reported",
+]);
+
+export const cleaningFrequencyEnum = pgEnum("cleaning_frequency", [
+  "daily",
+  "weekly",
+  "biweekly",
+  "monthly",
+]);
