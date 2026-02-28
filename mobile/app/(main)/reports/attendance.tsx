@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, RefreshControl } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import * as inventoryApi from "../../../src/api/inventory";
 
 export default function AttendanceReportScreen() {

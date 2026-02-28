@@ -25,6 +25,11 @@ export async function batchUploadBeaconEvents(
   return response.data;
 }
 
+export async function recordQrScan(beaconId: string) {
+  const response = await api.post("/beacons/scan", { beaconId });
+  return response.data;
+}
+
 export async function getUploadUrl(purpose: string) {
   const response = await api.post("/upload", { purpose });
   return response.data;

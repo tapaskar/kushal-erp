@@ -280,6 +280,9 @@ export function StaffClient({
           <Link href="/staff/beacons">
             <Button variant="outline">Beacons</Button>
           </Link>
+          <Link href="/staff/locations">
+            <Button variant="outline">Live Map</Button>
+          </Link>
         </div>
       </div>
 

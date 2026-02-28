@@ -13,6 +13,40 @@ import { useShiftStore } from "../../src/store/shift-store";
 import { useTaskStore } from "../../src/store/task-store";
 import { STAFF_ROLES, SHIFT_STATUS_LABELS } from "../../src/lib/constants";
 
+interface QuickAction {
+  icon: string;
+  label: string;
+  route: string;
+}
+
+function getQuickActions(role: string): QuickAction[] {
+  const viewTasks = { icon: "📋", label: "View Tasks", route: "/(main)/tasks" };
+  const startPatrol = { icon: "🛡️", label: "Start Patrol", route: "/(main)/patrol" };
+  const shiftHistory = { icon: "⏰", label: "Shift History", route: "/(main)/shifts" };
+  const scanQr = { icon: "📷", label: "Scan QR", route: "/(main)/scan-qr" };
+  const startCleaning = { icon: "✨", label: "Start Cleaning", route: "/(main)/cleaning" };
+  const viewReports = { icon: "📊", label: "View Reports", route: "/(main)/reports" };
+  const reportIncident = { icon: "🚨", label: "Report Incident", route: "/(main)/incidents/new" };
+  const inventory = { icon: "📦", label: "Inventory", route: "/(main)/inventory" };
+
+  switch (role) {
+    case "security":
+      return [viewTasks, startPatrol, shiftHistory, reportIncident];
+    case "supervisor":
+      return [viewTasks, startPatrol, viewReports, scanQr];
+    case "housekeeping":
+      return [viewTasks, startCleaning, shiftHistory, scanQr];
+    case "gardener":
+      return [viewTasks, inventory, shiftHistory, scanQr];
+    case "maintenance":
+    case "electrician":
+    case "plumber":
+      return [viewTasks, shiftHistory, scanQr, reportIncident];
+    default:
+      return [viewTasks, shiftHistory, scanQr];
+  }
+}
+
 export default function DashboardScreen() {
   const { staff, society } = useAuthStore();
   const { currentShift, fetchCurrentShift } = useShiftStore();
@@ -142,28 +176,17 @@ export default function DashboardScreen() {
       {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
-        <View style={styles.actionsRow}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push("/(main)/tasks")}
-          >
-            <Text style={styles.actionIcon}>📋</Text>
-            <Text style={styles.actionLabel}>View Tasks</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push("/(main)/patrol")}
-          >
-            <Text style={styles.actionIcon}>🛡️</Text>
-            <Text style={styles.actionLabel}>Start Patrol</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => router.push("/(main)/shifts")}
-          >
-            <Text style={styles.actionIcon}>📊</Text>
-            <Text style={styles.actionLabel}>Shift History</Text>
-          </TouchableOpacity>
+        <View style={styles.actionsGrid}>
+          {getQuickActions(staff?.role || "").map((action) => (
+            <TouchableOpacity
+              key={action.label}
+              style={styles.actionButton}
+              onPress={() => router.push(action.route as any)}
+            >
+              <Text style={styles.actionIcon}>{action.icon}</Text>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
@@ -272,12 +295,13 @@ const styles = StyleSheet.create({
     color: "#64748b",
     marginTop: 4,
   },
-  actionsRow: {
+  actionsGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   actionButton: {
-    flex: 1,
+    width: "47%" as any,
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useInventoryStore } from "../../../src/store/inventory-store";
 
 export default function BarcodeScanScreen() {
@@ -15,38 +16,84 @@ export default function BarcodeScanScreen() {
   const { searchByBarcode, items } = useInventoryStore();
   const [barcode, setBarcode] = useState("");
   const [searching, setSearching] = useState(false);
+  const [scannerActive, setScannerActive] = useState(true);
+  const [permission, requestPermission] = useCameraPermissions();
+  const scannedRef = useRef(false);
 
-  // Manual barcode entry as fallback (camera-based scan requires expo-camera setup)
-  const handleSearch = async () => {
-    if (!barcode.trim()) {
-      Alert.alert("Error", "Enter a barcode to search");
-      return;
-    }
+  const handleBarcodeFound = async (code: string) => {
+    if (scannedRef.current || !code.trim()) return;
+    scannedRef.current = true;
+    setScannerActive(false);
+
     setSearching(true);
     try {
-      await searchByBarcode(barcode.trim());
-      // If item found, navigate to it
-      if (items.length > 0) {
-        router.replace(`/(main)/inventory/${items[0].id}`);
+      await searchByBarcode(code.trim());
+      const store = useInventoryStore.getState();
+      if (store.items.length > 0) {
+        router.replace(`/(main)/inventory/${store.items[0].id}`);
       } else {
-        Alert.alert("Not Found", "No item found with this barcode");
+        Alert.alert("Not Found", "No item found with this barcode", [
+          { text: "Scan Again", onPress: () => { scannedRef.current = false; setScannerActive(true); } },
+        ]);
       }
     } catch {
-      Alert.alert("Error", "Search failed");
+      Alert.alert("Error", "Search failed", [
+        { text: "Retry", onPress: () => { scannedRef.current = false; setScannerActive(true); } },
+      ]);
     } finally {
       setSearching(false);
     }
   };
 
+  const handleManualSearch = async () => {
+    if (!barcode.trim()) {
+      Alert.alert("Error", "Enter a barcode to search");
+      return;
+    }
+    await handleBarcodeFound(barcode.trim());
+  };
+
+  if (!permission) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.permissionText}>Requesting camera permission...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.cameraPlaceholder}>
-        <Text style={styles.cameraIcon}>📷</Text>
-        <Text style={styles.cameraText}>Camera barcode scanning</Text>
-        <Text style={styles.cameraSubtext}>
-          Requires expo-camera module.{"\n"}Use manual entry below.
-        </Text>
-      </View>
+      {permission.granted && scannerActive ? (
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={styles.camera}
+            facing="back"
+            barcodeScannerSettings={{
+              barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "qr"],
+            }}
+            onBarcodeScanned={(result) => handleBarcodeFound(result.data)}
+          />
+          <View style={styles.overlay}>
+            <View style={styles.scanFrame} />
+            <Text style={styles.scanHint}>Point camera at barcode</Text>
+          </View>
+        </View>
+      ) : (
+        <TouchableOpacity
+          style={styles.cameraPlaceholder}
+          onPress={permission.granted ? () => { scannedRef.current = false; setScannerActive(true); } : requestPermission}
+        >
+          <Text style={styles.cameraIcon}>📷</Text>
+          <Text style={styles.cameraText}>
+            {permission.granted ? "Tap to scan again" : "Tap to enable camera"}
+          </Text>
+          {!permission.granted && (
+            <Text style={styles.cameraSubtext}>
+              Camera permission required for scanning
+            </Text>
+          )}
+        </TouchableOpacity>
+      )}
 
       <View style={styles.manualSection}>
         <Text style={styles.label}>Manual Barcode Entry</Text>
@@ -55,12 +102,12 @@ export default function BarcodeScanScreen() {
           value={barcode}
           onChangeText={setBarcode}
           placeholder="Enter barcode..."
-          onSubmitEditing={handleSearch}
+          onSubmitEditing={handleManualSearch}
           autoCapitalize="characters"
         />
         <TouchableOpacity
           style={[styles.searchButton, searching && { opacity: 0.6 }]}
-          onPress={handleSearch}
+          onPress={handleManualSearch}
           disabled={searching}
         >
           <Text style={styles.searchButtonText}>
@@ -74,6 +121,34 @@ export default function BarcodeScanScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f8fafc", padding: 16 },
+  cameraContainer: {
+    borderRadius: 16,
+    height: 280,
+    overflow: "hidden",
+    marginBottom: 24,
+    position: "relative",
+  },
+  camera: { flex: 1 },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scanFrame: {
+    width: 220,
+    height: 140,
+    borderWidth: 2,
+    borderColor: "#1a56db",
+    borderRadius: 12,
+  },
+  scanHint: {
+    color: "#fff",
+    fontSize: 13,
+    marginTop: 12,
+    textShadowColor: "#000",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
   cameraPlaceholder: {
     backgroundColor: "#1e293b",
     borderRadius: 16,
@@ -103,4 +178,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchButtonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
+  permissionText: { textAlign: "center", marginTop: 100, fontSize: 16, color: "#64748b" },
 });

@@ -83,7 +83,7 @@ export default function MainLayout() {
         name="patrol/index"
         options={{
           title: "Patrol",
-          href: isSecurity || isTechnical ? "/(main)/patrol" : null,
+          href: isSecurity || isTechnical || isSupervisor ? "/(main)/patrol" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="patrol/index" focused={focused} />
           ),
@@ -196,6 +196,10 @@ export default function MainLayout() {
       <Tabs.Screen
         name="inventory/scan"
         options={{ href: null, title: "Scan Barcode" }}
+      />
+      <Tabs.Screen
+        name="scan-qr"
+        options={{ href: null, title: "Scan QR" }}
       />
       <Tabs.Screen
         name="reports/attendance"

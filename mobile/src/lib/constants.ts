@@ -1,8 +1,6 @@
-// Change this to your actual backend URL
 // For local development with Android emulator, use 10.0.2.2 instead of localhost
-export const API_BASE_URL = __DEV__
-  ? "http://10.0.2.2:3000"
-  : "https://your-production-url.com";
+// To use local backend, change the dev URL back to "http://10.0.2.2:3000"
+export const API_BASE_URL = "https://d2ptd26i4ablj7.cloudfront.net";
 
 export const STAFF_ROLES: Record<string, string> = {
   security: "Security",

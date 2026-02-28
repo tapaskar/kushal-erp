@@ -256,7 +256,44 @@ export async function getLocationHistory(
     .orderBy(locationLogs.recordedAt);
 }
 
+export async function getLatestLocationsForSociety(societyId: string) {
+  return db
+    .select({
+      staffId: staff.id,
+      staffName: staff.name,
+      staffRole: staff.role,
+      latitude: locationLogs.latitude,
+      longitude: locationLogs.longitude,
+      source: locationLogs.source,
+      recordedAt: locationLogs.recordedAt,
+    })
+    .from(locationLogs)
+    .innerJoin(staff, eq(locationLogs.staffId, staff.id))
+    .where(
+      and(
+        eq(locationLogs.societyId, societyId),
+        eq(staff.isActive, true),
+        sql`${locationLogs.id} IN (
+          SELECT DISTINCT ON (staff_id) id
+          FROM location_logs
+          WHERE society_id = ${societyId}
+          ORDER BY staff_id, recorded_at DESC
+        )`
+      )
+    )
+    .orderBy(staff.name);
+}
+
 // ─── Beacons ───
+
+export async function getBeaconById(beaconId: string) {
+  const [result] = await db
+    .select()
+    .from(beacons)
+    .where(eq(beacons.id, beaconId))
+    .limit(1);
+  return result;
+}
 
 export async function getBeaconsForSociety(societyId: string) {
   return db
@@ -775,4 +812,116 @@ export async function getStaffStats(societyId: string) {
       completedToday: taskStats.completedToday,
     },
   };
+}
+
+// ─── Detailed Reports ───
+
+export async function getAttendanceReportRange(
+  societyId: string,
+  dateFrom: string,
+  dateTo: string
+) {
+  return db
+    .select({
+      staffId: staff.id,
+      staffName: staff.name,
+      staffRole: staff.role,
+      employeeCode: staff.employeeCode,
+      date: shifts.date,
+      scheduledStart: shifts.scheduledStart,
+      scheduledEnd: shifts.scheduledEnd,
+      actualCheckIn: shifts.actualCheckIn,
+      actualCheckOut: shifts.actualCheckOut,
+      status: shifts.status,
+      hoursWorked: sql<string>`CASE
+        WHEN ${shifts.actualCheckIn} IS NOT NULL AND ${shifts.actualCheckOut} IS NOT NULL
+        THEN round(extract(epoch from (${shifts.actualCheckOut} - ${shifts.actualCheckIn})) / 3600.0, 1)::text
+        ELSE NULL
+      END`,
+    })
+    .from(shifts)
+    .innerJoin(staff, eq(shifts.staffId, staff.id))
+    .where(
+      and(
+        eq(shifts.societyId, societyId),
+        sql`${shifts.date} >= ${dateFrom}`,
+        sql`${shifts.date} <= ${dateTo}`
+      )
+    )
+    .orderBy(staff.name, shifts.date);
+}
+
+export async function getPatrolCompletionReport(
+  societyId: string,
+  dateFrom: string,
+  dateTo: string
+) {
+  const fromDate = new Date(dateFrom);
+  const toDate = new Date(dateTo + "T23:59:59");
+
+  return db
+    .select({
+      patrolLogId: patrolLogs.id,
+      routeName: patrolRoutes.name,
+      staffName: staff.name,
+      staffRole: staff.role,
+      status: patrolLogs.status,
+      startedAt: patrolLogs.startedAt,
+      completedAt: patrolLogs.completedAt,
+      totalCheckpoints: patrolLogs.totalCheckpoints,
+      visitedCheckpoints: patrolLogs.visitedCheckpoints,
+      completionPercent: sql<number>`CASE
+        WHEN ${patrolLogs.totalCheckpoints} > 0
+        THEN round(${patrolLogs.visitedCheckpoints} * 100.0 / ${patrolLogs.totalCheckpoints})
+        ELSE 0
+      END`,
+      timeTakenMin: sql<string>`CASE
+        WHEN ${patrolLogs.startedAt} IS NOT NULL AND ${patrolLogs.completedAt} IS NOT NULL
+        THEN round(extract(epoch from (${patrolLogs.completedAt} - ${patrolLogs.startedAt})) / 60.0)::text
+        ELSE NULL
+      END`,
+    })
+    .from(patrolLogs)
+    .innerJoin(patrolRoutes, eq(patrolLogs.patrolRouteId, patrolRoutes.id))
+    .innerJoin(staff, eq(patrolLogs.staffId, staff.id))
+    .where(
+      and(
+        eq(patrolLogs.societyId, societyId),
+        gte(patrolLogs.createdAt, fromDate),
+        lte(patrolLogs.createdAt, toDate)
+      )
+    )
+    .orderBy(desc(patrolLogs.createdAt));
+}
+
+export async function getAreaPresenceReport(
+  societyId: string,
+  dateFrom: string,
+  dateTo: string
+) {
+  const fromDate = new Date(dateFrom);
+  const toDate = new Date(dateTo + "T23:59:59");
+
+  return db
+    .select({
+      eventId: beaconEvents.id,
+      staffName: staff.name,
+      staffRole: staff.role,
+      beaconLabel: beacons.label,
+      beaconLocation: beacons.location,
+      beaconFloor: beacons.floor,
+      eventType: beaconEvents.eventType,
+      recordedAt: beaconEvents.recordedAt,
+    })
+    .from(beaconEvents)
+    .innerJoin(staff, eq(beaconEvents.staffId, staff.id))
+    .innerJoin(beacons, eq(beaconEvents.beaconId, beacons.id))
+    .where(
+      and(
+        eq(beaconEvents.societyId, societyId),
+        gte(beaconEvents.recordedAt, fromDate),
+        lte(beaconEvents.recordedAt, toDate)
+      )
+    )
+    .orderBy(desc(beaconEvents.recordedAt));
 }

@@ -32,7 +32,7 @@ export default function CleaningScreen() {
 
       <FlatList
         data={schedule}
-        keyExtractor={(item) => item.log?.id || item.id}
+        keyExtractor={(item, index) => item.log?.id || item.id || String(index)}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={() => fetchSchedule()} />
         }

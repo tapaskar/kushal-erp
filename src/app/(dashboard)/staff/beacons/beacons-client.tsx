@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -29,8 +29,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ArrowLeft, Radio } from "lucide-react";
+import { Plus, ArrowLeft, Radio, QrCode, Download, Printer } from "lucide-react";
 import { addBeacon } from "@/services/staff-admin.service";
+import QRCode from "qrcode";
 
 interface BeaconRow {
   id: string;
@@ -50,6 +51,56 @@ export function BeaconsClient({ beacons }: { beacons: BeaconRow[] }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [qrBeacon, setQrBeacon] = useState<BeaconRow | null>(null);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  async function showQrCode(beacon: BeaconRow) {
+    setQrBeacon(beacon);
+    const qrValue = `rwa://beacon/${beacon.id}`;
+    try {
+      const dataUrl = await QRCode.toDataURL(qrValue, {
+        width: 300,
+        margin: 2,
+        color: { dark: "#000000", light: "#ffffff" },
+      });
+      setQrDataUrl(dataUrl);
+      setQrOpen(true);
+    } catch (err) {
+      console.error("QR generation error:", err);
+    }
+  }
+
+  function downloadQr() {
+    if (!qrDataUrl || !qrBeacon) return;
+    const link = document.createElement("a");
+    link.download = `beacon-qr-${qrBeacon.label.replace(/\s+/g, "-").toLowerCase()}.png`;
+    link.href = qrDataUrl;
+    link.click();
+  }
+
+  function printQr() {
+    if (!qrDataUrl || !qrBeacon) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head><title>QR Code - ${qrBeacon.label}</title></head>
+        <body style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;">
+          <h2>${qrBeacon.label}</h2>
+          <p style="color:#666;">${qrBeacon.location || ""}</p>
+          <img src="${qrDataUrl}" style="width:300px;height:300px;" />
+          <p style="color:#999;font-size:12px;margin-top:16px;">Scan to mark presence</p>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  }
 
   const filtered = beacons.filter((b) => {
     if (!search) return true;
@@ -237,6 +288,7 @@ export function BeaconsClient({ beacons }: { beacons: BeaconRow[] }) {
                 <TableHead className="text-right">Major</TableHead>
                 <TableHead className="text-right">Minor</TableHead>
                 <TableHead className="text-right">Floor</TableHead>
+                <TableHead className="text-center">QR Code</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -258,12 +310,63 @@ export function BeaconsClient({ beacons }: { beacons: BeaconRow[] }) {
                   <TableCell className="text-right">
                     {beacon.floor !== null ? beacon.floor : "---"}
                   </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => showQrCode(beacon)}
+                    >
+                      <QrCode className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Card>
       )}
+
+      {/* QR Code Dialog */}
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>QR Code - {qrBeacon?.label}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-4">
+            {qrBeacon?.location && (
+              <p className="text-sm text-muted-foreground">{qrBeacon.location}</p>
+            )}
+            {qrDataUrl && (
+              <img
+                src={qrDataUrl}
+                alt={`QR Code for ${qrBeacon?.label}`}
+                className="w-64 h-64 border rounded-lg"
+              />
+            )}
+            <p className="text-xs text-muted-foreground">
+              Staff can scan this QR code to mark their presence in this area
+            </p>
+            <div className="flex gap-3 w-full">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={downloadQr}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={printQr}
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

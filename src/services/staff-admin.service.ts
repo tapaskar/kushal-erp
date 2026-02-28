@@ -229,3 +229,27 @@ export async function getStaffLocationTrail(
     new Date(to)
   );
 }
+
+export async function getActiveStaffLocations() {
+  const session = await getSession();
+  if (!session?.societyId) throw new Error("Unauthorized");
+  return staffService.getLatestLocationsForSociety(session.societyId);
+}
+
+export async function getAttendanceReportData(from: string, to: string) {
+  const session = await getSession();
+  if (!session?.societyId) throw new Error("Unauthorized");
+  return staffService.getAttendanceReportRange(session.societyId, from, to);
+}
+
+export async function getPatrolCompletionReportData(from: string, to: string) {
+  const session = await getSession();
+  if (!session?.societyId) throw new Error("Unauthorized");
+  return staffService.getPatrolCompletionReport(session.societyId, from, to);
+}
+
+export async function getAreaPresenceReportData(from: string, to: string) {
+  const session = await getSession();
+  if (!session?.societyId) throw new Error("Unauthorized");
+  return staffService.getAreaPresenceReport(session.societyId, from, to);
+}

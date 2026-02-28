@@ -17,7 +17,7 @@ export const useVisitorStore = create<VisitorState>((set, get) => ({
     set({ loading: true });
     try {
       const data = await visitorsApi.getVisitors({ date });
-      set({ visitors: data.visitors.map((v: any) => v.visitor || v) });
+      set({ visitors: data.visitors.map((v: { visitor?: VisitorLog } & VisitorLog) => v.visitor || v) });
     } catch {
       // Keep existing state on error
     } finally {

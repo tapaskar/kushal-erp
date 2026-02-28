@@ -56,6 +56,7 @@ export const STAFF_SUB_NAV = [
   { label: "SOS Alerts", href: "/staff/sos", icon: "Siren" },
   { label: "Cleaning", href: "/staff/cleaning", icon: "Sparkles" },
   { label: "Supplies", href: "/staff/supplies", icon: "Package" },
+  { label: "Live Map", href: "/staff/locations", icon: "MapPin" },
   { label: "Reports", href: "/staff/reports", icon: "BarChart3" },
 ] as const;
 

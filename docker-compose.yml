@@ -25,7 +25,7 @@ services:
       DATABASE_URL: postgresql://rwa_user:rwa_pass_dev@postgres:5432/rwa_erp_dev
       AUTH_SECRET: dev-secret-change-in-production-min-32-chars!!
       NEXT_PUBLIC_APP_URL: http://localhost:3000
-      NODE_ENV: production
+      NODE_ENV: development
     depends_on:
       postgres:
         condition: service_healthy
