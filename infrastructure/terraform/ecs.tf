@@ -218,15 +218,21 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = [aws_subnet.private_a.id, aws_subnet.private_b.id]
+    subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
     security_groups  = [aws_security_group.ecs.id]
-    assign_public_ip = false
+    assign_public_ip = true # Public subnet — no NAT Gateway needed
   }
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "app"
     container_port   = 3000
+  }
+
+  # Ignore task_definition changes — new revisions are deployed via CI/CD or CLI,
+  # not Terraform. Without this, terraform apply would roll back to the old revision.
+  lifecycle {
+    ignore_changes = [task_definition]
   }
 
   depends_on = [aws_lb_listener.http]

@@ -15,7 +15,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen">
       <AdminSidebar />
-      <div className="md:pl-60">
+      <div className="md:pl-64">
         <Header userName={session.name} sidebar={<AdminSidebar mobile />} />
         <main className="p-4 md:p-6">{children}</main>
       </div>

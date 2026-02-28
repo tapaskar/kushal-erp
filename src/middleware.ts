@@ -6,7 +6,7 @@ const SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || "dev-secret-change-in-production-min-32-chars!!"
 );
 
-const PUBLIC_PATHS = ["/login", "/verify-otp", "/api/auth", "/api/webhooks", "/api/health", "/quote", "/vendor-register"];
+const PUBLIC_PATHS = ["/login", "/verify-otp", "/api/auth", "/api/webhooks", "/api/health", "/api/v1", "/quote", "/vendor-register"];
 
 // Society dashboard routes that super admins should not access
 const SOCIETY_PATHS = [
@@ -17,6 +17,7 @@ const SOCIETY_PATHS = [
   "/inventory",
   "/notices",
   "/complaints",
+  "/staff",
   "/reports",
   "/society",
 ];

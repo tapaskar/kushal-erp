@@ -17,6 +17,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Building2, Users, ShieldCheck } from "lucide-react";
+import { InfraControlPanel } from "./infra-control-panel";
+import type { InfraStatus } from "@/services/aws-infra.service";
 
 interface Props {
   stats: {
@@ -35,9 +37,10 @@ interface Props {
     unitCount: number;
     adminCount: number;
   }>;
+  infraStatus: InfraStatus;
 }
 
-export function AdminDashboardClient({ stats, recentSocieties }: Props) {
+export function AdminDashboardClient({ stats, recentSocieties, infraStatus }: Props) {
   const statCards = [
     {
       title: "Total Societies",
@@ -70,6 +73,8 @@ export function AdminDashboardClient({ stats, recentSocieties }: Props) {
           Platform overview and management
         </p>
       </div>
+
+      <InfraControlPanel initialStatus={infraStatus} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         {statCards.map((card) => (

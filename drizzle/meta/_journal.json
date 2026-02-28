@@ -15,6 +15,20 @@
       "when": 1771753796961,
       "tag": "0001_conscious_war_machine",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772208700582,
+      "tag": "0002_romantic_wendigo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1772243788845,
+      "tag": "0003_purple_red_wolf",
+      "breakpoints": true
     }
   ]
 }

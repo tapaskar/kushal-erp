@@ -36,7 +36,7 @@ export function Header({ userName = "User", societyName, sidebar }: HeaderProps)
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border/60 bg-background/95 backdrop-blur-sm px-4 md:px-6">
       {/* Mobile menu */}
       <Sheet>
         <SheetTrigger asChild>
@@ -44,27 +44,29 @@ export function Header({ userName = "User", societyName, sidebar }: HeaderProps)
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-60 p-0">
+        <SheetContent side="left" className="w-64 p-0">
           {sidebar || <Sidebar mobile />}
         </SheetContent>
       </Sheet>
 
       {societyName && (
-        <h2 className="text-sm font-medium text-muted-foreground hidden sm:block">
+        <span className="hidden sm:inline-flex items-center rounded-full border border-primary/20 bg-primary/6 px-2.5 py-0.5 text-xs font-medium text-primary">
           {societyName}
-        </h2>
+        </span>
       )}
 
       <div className="ml-auto flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="text-xs bg-primary/10 text-primary font-semibold">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-48">
             <div className="flex items-center gap-2 p-2">
               <User className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">{userName}</span>

@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "RWA Staff Tracker",
+    "slug": "rwa-staff-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "scheme": "rwa-staff",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a56db"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.kushalrwa.stafftracker",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We need your location to verify check-in/check-out at the society campus.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Location tracking is used during your shift to monitor patrol routes and ensure campus safety.",
+        "NSCameraUsageDescription": "Camera is used for check-in selfie and task photo verification."
+      }
+    },
+    "android": {
+      "package": "com.kushalrwa.stafftracker",
+      "adaptiveIcon": {
+        "backgroundColor": "#1a56db",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow RWA Staff Tracker to use your location during shifts for patrol tracking.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow RWA Staff Tracker to use the camera for check-in photos and task verification."
+        }
+      ]
+    ]
+  }
+}

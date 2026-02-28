@@ -14,7 +14,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen">
       <Sidebar />
-      <div className="md:pl-60">
+      <div className="md:pl-64">
         <Header userName={session.name} />
         <main className="p-4 md:p-6">{children}</main>
       </div>
