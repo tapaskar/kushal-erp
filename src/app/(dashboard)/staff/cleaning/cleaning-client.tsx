@@ -80,8 +80,8 @@ export function CleaningClient({
     try {
       await verifyCleaningLog(logId);
       setList(list.map((l) => (l.id === logId ? { ...l, status: "verified" } : l)));
-    } catch {
-      // ignore
+    } catch (err: any) {
+      alert(err?.message || "Failed to verify cleaning log");
     } finally {
       setVerifying(null);
     }

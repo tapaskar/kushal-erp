@@ -7,6 +7,9 @@ export async function getCleaningSchedule(date?: string) {
 
 export async function startCleaning(logId: string) {
   const response = await api.put(`/cleaning/${logId}/start`);
+  if (!response.data?.log) {
+    throw new Error(response.data?.error || "Failed to start cleaning");
+  }
   return response.data;
 }
 
@@ -16,6 +19,9 @@ export async function completeCleaning(logId: string, data: {
   notes?: string;
 }) {
   const response = await api.put(`/cleaning/${logId}/complete`, data);
+  if (!response.data?.log) {
+    throw new Error(response.data?.error || "Failed to complete cleaning");
+  }
   return response.data;
 }
 

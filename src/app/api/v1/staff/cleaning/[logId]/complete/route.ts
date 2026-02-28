@@ -18,7 +18,10 @@ export async function PUT(
       notes: body.notes,
     });
     return NextResponse.json({ log });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes("not found")) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
     console.error("[Cleaning Complete] Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

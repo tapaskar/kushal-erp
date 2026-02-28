@@ -13,7 +13,10 @@ export async function PUT(
     const { logId } = await params;
     const log = await hkService.startCleaning(logId, session.staffId);
     return NextResponse.json({ log });
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.message?.includes("not found")) {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
     console.error("[Cleaning Start] Error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

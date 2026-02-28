@@ -107,7 +107,7 @@ export async function createCleaningLog(data: {
 }
 
 export async function startCleaning(logId: string, staffId: string) {
-  const [result] = await db
+  const results = await db
     .update(cleaningLogs)
     .set({
       status: "in_progress",
@@ -117,7 +117,10 @@ export async function startCleaning(logId: string, staffId: string) {
     })
     .where(eq(cleaningLogs.id, logId))
     .returning();
-  return result;
+  if (results.length === 0) {
+    throw new Error(`Cleaning log with id ${logId} not found`);
+  }
+  return results[0];
 }
 
 export async function completeCleaning(
@@ -128,7 +131,7 @@ export async function completeCleaning(
     notes?: string;
   }
 ) {
-  const [result] = await db
+  const results = await db
     .update(cleaningLogs)
     .set({
       status: "completed",
@@ -140,11 +143,14 @@ export async function completeCleaning(
     })
     .where(eq(cleaningLogs.id, logId))
     .returning();
-  return result;
+  if (results.length === 0) {
+    throw new Error(`Cleaning log with id ${logId} not found`);
+  }
+  return results[0];
 }
 
 export async function verifyCleaning(logId: string, verifiedBy: string) {
-  const [result] = await db
+  const results = await db
     .update(cleaningLogs)
     .set({
       status: "verified",
@@ -154,7 +160,10 @@ export async function verifyCleaning(logId: string, verifiedBy: string) {
     })
     .where(eq(cleaningLogs.id, logId))
     .returning();
-  return result;
+  if (results.length === 0) {
+    throw new Error(`Cleaning log with id ${logId} not found`);
+  }
+  return results[0];
 }
 
 export async function rateCleaning(
@@ -163,7 +172,7 @@ export async function rateCleaning(
   comment: string | undefined,
   ratedBy: string
 ) {
-  const [result] = await db
+  const results = await db
     .update(cleaningLogs)
     .set({
       rating,
@@ -173,7 +182,10 @@ export async function rateCleaning(
     })
     .where(eq(cleaningLogs.id, logId))
     .returning();
-  return result;
+  if (results.length === 0) {
+    throw new Error(`Cleaning log with id ${logId} not found`);
+  }
+  return results[0];
 }
 
 // ─── Supply Requests ───

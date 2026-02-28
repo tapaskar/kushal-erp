@@ -57,13 +57,15 @@ export default function CleanZoneScreen() {
   const handleStart = async () => {
     setUpdating(true);
     try {
-      await cleaningApi.startCleaning(logId);
-      setLog({
-        ...log,
-        log: { ...log.log, status: "in_progress", startedAt: new Date().toISOString() },
-      });
-    } catch {
-      Alert.alert("Error", "Failed to start cleaning");
+      const result = await cleaningApi.startCleaning(logId);
+      if (result?.log) {
+        setLog({
+          ...log,
+          log: { ...log.log, ...result.log, status: "in_progress" },
+        });
+      }
+    } catch (err: any) {
+      Alert.alert("Error", err?.message || "Failed to start cleaning");
     } finally {
       setUpdating(false);
     }
@@ -72,18 +74,20 @@ export default function CleanZoneScreen() {
   const handleComplete = async () => {
     setUpdating(true);
     try {
-      await cleaningApi.completeCleaning(logId, {
+      const result = await cleaningApi.completeCleaning(logId, {
         beforePhotoUrl: beforePhoto,
         afterPhotoUrl: afterPhoto,
         notes,
       });
-      setLog({
-        ...log,
-        log: { ...log.log, status: "completed", completedAt: new Date().toISOString() },
-      });
+      if (result?.log) {
+        setLog({
+          ...log,
+          log: { ...log.log, ...result.log, status: "completed" },
+        });
+      }
       Alert.alert("Success", "Cleaning marked as complete");
-    } catch {
-      Alert.alert("Error", "Failed to complete cleaning");
+    } catch (err: any) {
+      Alert.alert("Error", err?.message || "Failed to complete cleaning");
     } finally {
       setUpdating(false);
     }
