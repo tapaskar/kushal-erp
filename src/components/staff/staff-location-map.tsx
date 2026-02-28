@@ -57,19 +57,28 @@ function createMarkerIcon(role: string) {
   });
 }
 
+interface GeofenceConfig {
+  lat: number;
+  lng: number;
+  radius: number;
+}
+
 export function StaffLocationMap({
   locations,
   trail,
   selectedStaffName,
+  geofence,
 }: {
   locations: StaffLocation[];
   trail?: TrailPoint[];
   selectedStaffName?: string;
+  geofence?: GeofenceConfig | null;
 }) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.LayerGroup | null>(null);
   const trailRef = useRef<L.Polyline | null>(null);
+  const geofenceRef = useRef<L.Circle | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -159,6 +168,37 @@ export function StaffLocationMap({
       mapRef.current.fitBounds(points, { padding: [40, 40], maxZoom: 17 });
     }
   }, [trail]);
+
+  // Render geofence circle
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    if (geofenceRef.current) {
+      geofenceRef.current.remove();
+      geofenceRef.current = null;
+    }
+
+    if (!geofence) return;
+
+    geofenceRef.current = L.circle([geofence.lat, geofence.lng], {
+      radius: geofence.radius,
+      color: "#2563eb",
+      weight: 2,
+      opacity: 0.6,
+      fillColor: "#2563eb",
+      fillOpacity: 0.08,
+      dashArray: "8, 6",
+    }).addTo(mapRef.current);
+
+    geofenceRef.current.bindPopup(
+      `<div><strong>Geofence Boundary</strong><br/>Radius: ${geofence.radius}m</div>`
+    );
+
+    // If no locations, center on geofence
+    if (locations.length === 0) {
+      mapRef.current.setView([geofence.lat, geofence.lng], 16);
+    }
+  }, [geofence, locations.length]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden border">

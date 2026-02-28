@@ -40,7 +40,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="auto" />
+      <StatusBar style="light" backgroundColor="#1a56db" />
       <Slot />
     </>
   );

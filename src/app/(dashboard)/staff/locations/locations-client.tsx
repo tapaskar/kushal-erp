@@ -57,12 +57,20 @@ interface TrailPoint {
   source: string;
 }
 
+interface GeofenceConfig {
+  lat: number;
+  lng: number;
+  radius: number;
+}
+
 export function LocationsClient({
   initialLocations,
   staffList,
+  geofence,
 }: {
   initialLocations: StaffLocation[];
   staffList: StaffOption[];
+  geofence?: GeofenceConfig | null;
 }) {
   const [locations, setLocations] = useState<StaffLocation[]>(initialLocations);
   const [selectedStaff, setSelectedStaff] = useState<string>("all");
@@ -214,6 +222,7 @@ export function LocationsClient({
               locations={locations}
               trail={trail.length > 0 ? trail : undefined}
               selectedStaffName={selectedStaffName}
+              geofence={geofence}
             />
           </div>
         </CardContent>

@@ -253,3 +253,38 @@ export async function getAreaPresenceReportData(from: string, to: string) {
   if (!session?.societyId) throw new Error("Unauthorized");
   return staffService.getAreaPresenceReport(session.societyId, from, to);
 }
+
+export async function getStaffActivities(staffId: string) {
+  const [shiftHistory, tasks, cleaningLogs, patrols, latestLocation, summary] =
+    await Promise.all([
+      staffService.getRecentShiftsForStaff(staffId, 10),
+      staffService.getRecentTasksForStaff(staffId, 20),
+      staffService.getCleaningLogsForStaffDetail(staffId, 20),
+      staffService.getRecentPatrolsForStaff(staffId, 10),
+      staffService.getLatestLocation(staffId),
+      staffService.getStaffActivitySummary(staffId),
+    ]);
+
+  return {
+    shiftHistory,
+    tasks,
+    cleaningLogs,
+    patrols,
+    latestLocation,
+    summary,
+  };
+}
+
+export async function getLocationReportData(
+  staffId: string,
+  from: string,
+  to: string
+) {
+  return staffService.getLocationReportForStaff(staffId, from, to);
+}
+
+export async function getActiveStaffList() {
+  const session = await getSession();
+  if (!session?.societyId) throw new Error("Unauthorized");
+  return staffService.getStaffBySociety(session.societyId, { isActive: true });
+}

@@ -1,6 +1,7 @@
 import { Tabs } from "expo-router";
 import { Text } from "react-native";
 import { useAuthStore } from "../../src/store/auth-store";
+import { BackButton } from "../../src/components/BackButton";
 
 function TabIcon({ name, focused }: { name: string; focused: boolean }) {
   const icons: Record<string, string> = {
@@ -148,70 +149,70 @@ export default function MainLayout() {
         }}
       />
 
-      {/* ── Hidden detail screens ── */}
+      {/* ── Hidden detail screens (with back button) ── */}
       <Tabs.Screen
         name="tasks/[taskId]"
-        options={{ href: null, title: "Task Detail" }}
+        options={{ href: null, title: "Task Detail", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="patrol/[patrolLogId]"
-        options={{ href: null, title: "Active Patrol" }}
+        options={{ href: null, title: "Active Patrol", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="shifts/clock"
-        options={{ href: null, title: "Clock In/Out" }}
+        options={{ href: null, title: "Clock In/Out", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="visitors/new"
-        options={{ href: null, title: "New Visitor" }}
+        options={{ href: null, title: "New Visitor", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="visitors/[visitorId]"
-        options={{ href: null, title: "Visitor Detail" }}
+        options={{ href: null, title: "Visitor Detail", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="incidents/index"
-        options={{ href: null, title: "Incidents" }}
+        options={{ href: null, title: "Incidents", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="incidents/new"
-        options={{ href: null, title: "Report Incident" }}
+        options={{ href: null, title: "Report Incident", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="sos"
-        options={{ href: null, title: "SOS Alert" }}
+        options={{ href: null, title: "SOS Alert", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="cleaning/[logId]"
-        options={{ href: null, title: "Clean Zone" }}
+        options={{ href: null, title: "Clean Zone", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="cleaning/supplies"
-        options={{ href: null, title: "Supplies" }}
+        options={{ href: null, title: "Supplies", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="inventory/[itemId]"
-        options={{ href: null, title: "Item Detail" }}
+        options={{ href: null, title: "Item Detail", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="inventory/scan"
-        options={{ href: null, title: "Scan Barcode" }}
+        options={{ href: null, title: "Scan Barcode", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="scan-qr"
-        options={{ href: null, title: "Scan QR" }}
+        options={{ href: null, title: "Scan QR", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="reports/attendance"
-        options={{ href: null, title: "Attendance Report" }}
+        options={{ href: null, title: "Attendance Report", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="reports/cleaning"
-        options={{ href: null, title: "Cleaning Report" }}
+        options={{ href: null, title: "Cleaning Report", headerLeft: () => <BackButton /> }}
       />
       <Tabs.Screen
         name="reports/security"
-        options={{ href: null, title: "Security Report" }}
+        options={{ href: null, title: "Security Report", headerLeft: () => <BackButton /> }}
       />
     </Tabs>
   );

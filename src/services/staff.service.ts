@@ -9,8 +9,10 @@ import {
   patrolLogs,
   staffTasks,
   complaints,
+  cleaningLogs,
+  cleaningZones,
 } from "@/db/schema";
-import { eq, and, desc, sql, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, gte, lte, inArray, count } from "drizzle-orm";
 
 // ─── Staff CRUD ───
 
@@ -924,4 +926,136 @@ export async function getAreaPresenceReport(
       )
     )
     .orderBy(desc(beaconEvents.recordedAt));
+}
+
+// ─── Staff Activity Detail ───
+
+export async function getCleaningLogsForStaffDetail(
+  staffId: string,
+  limit = 20
+) {
+  return db
+    .select({
+      id: cleaningLogs.id,
+      zoneName: cleaningZones.name,
+      zoneType: cleaningZones.zoneType,
+      zoneFloor: cleaningZones.floor,
+      scheduledDate: cleaningLogs.scheduledDate,
+      status: cleaningLogs.status,
+      startedAt: cleaningLogs.startedAt,
+      completedAt: cleaningLogs.completedAt,
+      rating: cleaningLogs.rating,
+      notes: cleaningLogs.notes,
+    })
+    .from(cleaningLogs)
+    .innerJoin(cleaningZones, eq(cleaningLogs.zoneId, cleaningZones.id))
+    .where(eq(cleaningLogs.staffId, staffId))
+    .orderBy(desc(cleaningLogs.scheduledDate))
+    .limit(limit);
+}
+
+export async function getRecentShiftsForStaff(staffId: string, limit = 10) {
+  return db
+    .select()
+    .from(shifts)
+    .where(eq(shifts.staffId, staffId))
+    .orderBy(desc(shifts.date))
+    .limit(limit);
+}
+
+export async function getRecentTasksForStaff(staffId: string, limit = 20) {
+  return db
+    .select()
+    .from(staffTasks)
+    .where(eq(staffTasks.staffId, staffId))
+    .orderBy(desc(staffTasks.createdAt))
+    .limit(limit);
+}
+
+export async function getRecentPatrolsForStaff(staffId: string, limit = 10) {
+  return db
+    .select({
+      id: patrolLogs.id,
+      routeName: patrolRoutes.name,
+      status: patrolLogs.status,
+      startedAt: patrolLogs.startedAt,
+      completedAt: patrolLogs.completedAt,
+      totalCheckpoints: patrolLogs.totalCheckpoints,
+      visitedCheckpoints: patrolLogs.visitedCheckpoints,
+      createdAt: patrolLogs.createdAt,
+    })
+    .from(patrolLogs)
+    .innerJoin(patrolRoutes, eq(patrolLogs.patrolRouteId, patrolRoutes.id))
+    .where(eq(patrolLogs.staffId, staffId))
+    .orderBy(desc(patrolLogs.createdAt))
+    .limit(limit);
+}
+
+export async function getStaffActivitySummary(staffId: string) {
+  const [shiftCount] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(shifts)
+    .where(eq(shifts.staffId, staffId));
+
+  const [taskCount] = await db
+    .select({
+      total: sql<number>`count(*)`,
+      completed: sql<number>`count(*) filter (where ${staffTasks.status} = 'completed')`,
+    })
+    .from(staffTasks)
+    .where(eq(staffTasks.staffId, staffId));
+
+  const [cleaningCount] = await db
+    .select({
+      total: sql<number>`count(*)`,
+      completed: sql<number>`count(*) filter (where ${cleaningLogs.status} in ('completed', 'verified'))`,
+    })
+    .from(cleaningLogs)
+    .where(eq(cleaningLogs.staffId, staffId));
+
+  const [patrolCount] = await db
+    .select({
+      total: sql<number>`count(*)`,
+      completed: sql<number>`count(*) filter (where ${patrolLogs.status} in ('completed', 'partial'))`,
+    })
+    .from(patrolLogs)
+    .where(eq(patrolLogs.staffId, staffId));
+
+  return {
+    shifts: shiftCount.count,
+    tasks: { total: taskCount.total, completed: taskCount.completed },
+    cleaning: { total: cleaningCount.total, completed: cleaningCount.completed },
+    patrols: { total: patrolCount.total, completed: patrolCount.completed },
+  };
+}
+
+export async function getLocationReportForStaff(
+  staffId: string,
+  dateFrom: string,
+  dateTo: string
+) {
+  const from = new Date(dateFrom);
+  const to = new Date(dateTo + "T23:59:59");
+
+  return db
+    .select({
+      id: locationLogs.id,
+      latitude: locationLogs.latitude,
+      longitude: locationLogs.longitude,
+      accuracy: locationLogs.accuracy,
+      speed: locationLogs.speed,
+      source: locationLogs.source,
+      isMoving: locationLogs.isMoving,
+      batteryLevel: locationLogs.batteryLevel,
+      recordedAt: locationLogs.recordedAt,
+    })
+    .from(locationLogs)
+    .where(
+      and(
+        eq(locationLogs.staffId, staffId),
+        gte(locationLogs.recordedAt, from),
+        lte(locationLogs.recordedAt, to)
+      )
+    )
+    .orderBy(locationLogs.recordedAt);
 }

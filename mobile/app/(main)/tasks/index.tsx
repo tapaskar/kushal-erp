@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -128,6 +128,9 @@ export default function TaskListScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderTask}
         contentContainerStyle={styles.list}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={15}
+        windowSize={10}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

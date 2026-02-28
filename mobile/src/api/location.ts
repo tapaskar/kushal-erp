@@ -34,3 +34,10 @@ export async function getUploadUrl(purpose: string) {
   const response = await api.post("/upload", { purpose });
   return response.data;
 }
+
+export async function getGeofenceConfig(): Promise<{
+  geofence: { lat: number; lng: number; radius: number } | null;
+}> {
+  const response = await api.get("/geofence");
+  return response.data;
+}

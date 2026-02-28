@@ -69,8 +69,18 @@ export default function ClockScreen() {
       });
       Alert.alert("Checked In", "Your shift has started.");
       setPhotoUri(null);
-    } catch {
-      Alert.alert("Error", "Failed to check in. Please try again.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || "Failed to check in.";
+      const code = err?.response?.data?.code;
+      if (code === "OUTSIDE_GEOFENCE") {
+        Alert.alert(
+          "Outside Campus",
+          "You are outside the campus geofence boundary. Please move closer to the campus and try again.",
+          [{ text: "OK" }]
+        );
+      } else {
+        Alert.alert("Error", msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -95,8 +105,18 @@ export default function ClockScreen() {
       Alert.alert("Checked Out", "Your shift has ended.");
       setPhotoUri(null);
       router.back();
-    } catch {
-      Alert.alert("Error", "Failed to check out. Please try again.");
+    } catch (err: any) {
+      const msg = err?.response?.data?.error || err?.message || "Failed to check out.";
+      const code = err?.response?.data?.code;
+      if (code === "OUTSIDE_GEOFENCE") {
+        Alert.alert(
+          "Outside Campus",
+          "You are outside the campus geofence boundary. Please move closer to the campus and try again.",
+          [{ text: "OK" }]
+        );
+      } else {
+        Alert.alert("Error", msg);
+      }
     } finally {
       setLoading(false);
     }

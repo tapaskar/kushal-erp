@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Users, UserCheck, ClipboardList } from "lucide-react";
+import { Plus, Users, UserCheck, ClipboardList, Sparkles } from "lucide-react";
 import { addStaff } from "@/services/staff-admin.service";
 import { STAFF_ROLES } from "@/lib/constants";
 
@@ -55,6 +55,12 @@ interface Stats {
   totalStaff: number;
   checkedInToday: number;
   pendingTasks: number;
+  cleaningToday?: {
+    total: number;
+    completed: number;
+    inProgress: number;
+    completionRate: number;
+  };
 }
 
 export function StaffClient({
@@ -208,7 +214,7 @@ export function StaffClient({
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
@@ -244,6 +250,24 @@ export function StaffClient({
             </div>
           </CardContent>
         </Card>
+        {stats.cleaningToday && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Cleaning Today
+              </CardTitle>
+              <Sparkles className="h-4 w-4 text-emerald-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                {stats.cleaningToday.completionRate}%
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {stats.cleaningToday.completed}/{stats.cleaningToday.total} zones done
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Filters */}

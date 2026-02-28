@@ -121,6 +121,9 @@ export default function ShiftListScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderShift}
         contentContainerStyle={styles.list}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={15}
+        windowSize={10}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

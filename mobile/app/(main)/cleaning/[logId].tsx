@@ -8,6 +8,8 @@ import {
   Alert,
   Image,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -104,6 +106,11 @@ export default function CleanZoneScreen() {
   const status = log.log?.status || "pending";
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={90}
+    >
     <ScrollView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.zoneName}>{log.zoneName}</Text>
@@ -190,6 +197,7 @@ export default function CleanZoneScreen() {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

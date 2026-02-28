@@ -50,6 +50,10 @@ export const societies = pgTable("societies", {
       reminderDaysAfter?: number[];
     }>()
     .default({}),
+  // Geofence settings
+  geofenceLat: numeric("geofence_lat", { precision: 10, scale: 7 }),
+  geofenceLng: numeric("geofence_lng", { precision: 10, scale: 7 }),
+  geofenceRadiusMeters: integer("geofence_radius_meters").default(200),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

@@ -33,6 +33,9 @@ export default function CleaningScreen() {
       <FlatList
         data={schedule}
         keyExtractor={(item, index) => item.log?.id || item.id || String(index)}
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={15}
+        windowSize={10}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={() => fetchSchedule()} />
         }

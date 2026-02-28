@@ -24,9 +24,17 @@ import { ArrowLeft, Download, BarChart3 } from "lucide-react";
 import { SHIFT_STATUS_COLORS, PATROL_STATUS_COLORS } from "@/lib/constants";
 import { exportToCSV, formatDate, formatTime, formatDateTime } from "@/lib/export-utils";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   getAttendanceReportData,
   getPatrolCompletionReportData,
   getAreaPresenceReportData,
+  getLocationReportData,
 } from "@/services/staff-admin.service";
 
 interface AttendanceRow {
@@ -40,18 +48,26 @@ interface AttendanceRow {
   actualCheckOut: string | null;
 }
 
-type TabId = "overview" | "attendance" | "patrol" | "presence";
+interface StaffOption {
+  id: string;
+  name: string;
+  role: string;
+}
+
+type TabId = "overview" | "attendance" | "patrol" | "presence" | "location";
 
 export function ReportsClient({
   staffStats,
   securityStats,
   cleaningStats,
   attendance,
+  staffList,
 }: {
   staffStats: any;
   securityStats: any;
   cleaningStats: any;
   attendance: AttendanceRow[];
+  staffList?: StaffOption[];
 }) {
   const [activeTab, setActiveTab] = useState<TabId>("overview");
 
@@ -60,6 +76,7 @@ export function ReportsClient({
     { id: "attendance", label: "Attendance Report" },
     { id: "patrol", label: "Patrol Report" },
     { id: "presence", label: "Area Presence" },
+    { id: "location", label: "Location Reports" },
   ];
 
   return (
@@ -105,6 +122,9 @@ export function ReportsClient({
       {activeTab === "attendance" && <AttendanceReportTab />}
       {activeTab === "patrol" && <PatrolReportTab />}
       {activeTab === "presence" && <AreaPresenceTab />}
+      {activeTab === "location" && (
+        <LocationReportTab staffList={staffList || []} />
+      )}
     </div>
   );
 }
@@ -708,6 +728,276 @@ function AreaPresenceTab() {
         <Card className="border-dashed border-2">
           <CardContent className="py-12 text-center text-muted-foreground">
             Select a date range and click &quot;Generate Report&quot; to view QR scan and beacon presence data
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+// ── Location Reports Tab ──
+
+function LocationReportTab({ staffList }: { staffList: StaffOption[] }) {
+  const [selectedStaff, setSelectedStaff] = useState<string>("");
+  const [fromDate, setFromDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [toDate, setToDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  async function loadReport() {
+    if (!selectedStaff) return;
+    setLoading(true);
+    try {
+      const result = await getLocationReportData(selectedStaff, fromDate, toDate);
+      setData(result);
+    } catch (error) {
+      console.error("Failed to load location report:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Compute stats from data
+  const totalPoints = data.length;
+  const movingPoints = data.filter((d: any) => d.isMoving).length;
+  const gpsPoints = data.filter((d: any) => d.source === "gps").length;
+
+  // Compute total distance
+  let totalDistanceM = 0;
+  for (let i = 1; i < data.length; i++) {
+    const lat1 = parseFloat(data[i - 1].latitude);
+    const lng1 = parseFloat(data[i - 1].longitude);
+    const lat2 = parseFloat(data[i].latitude);
+    const lng2 = parseFloat(data[i].longitude);
+    if (!isNaN(lat1) && !isNaN(lng1) && !isNaN(lat2) && !isNaN(lng2)) {
+      const R = 6371000;
+      const toRad = (d: number) => (d * Math.PI) / 180;
+      const dLat = toRad(lat2 - lat1);
+      const dLng = toRad(lng2 - lng1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+      totalDistanceM += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+  }
+
+  // Tracking duration
+  let trackingDurationMin = 0;
+  if (data.length >= 2) {
+    const first = new Date(data[0].recordedAt).getTime();
+    const last = new Date(data[data.length - 1].recordedAt).getTime();
+    trackingDurationMin = Math.round((last - first) / 60000);
+  }
+
+  const staffName = staffList.find((s) => s.id === selectedStaff)?.name || "";
+
+  function handleExport() {
+    exportToCSV(
+      data.map((r: any) => ({
+        timestamp: formatDateTime(r.recordedAt),
+        latitude: r.latitude,
+        longitude: r.longitude,
+        accuracy: r.accuracy || "",
+        speed: r.speed || "",
+        source: r.source,
+        isMoving: r.isMoving ? "Yes" : "No",
+        battery: r.batteryLevel || "",
+      })),
+      `location-report-${staffName}-${fromDate}-to-${toDate}`,
+      [
+        { key: "timestamp", label: "Timestamp" },
+        { key: "latitude", label: "Latitude" },
+        { key: "longitude", label: "Longitude" },
+        { key: "accuracy", label: "Accuracy (m)" },
+        { key: "speed", label: "Speed (m/s)" },
+        { key: "source", label: "Source" },
+        { key: "isMoving", label: "Moving" },
+        { key: "battery", label: "Battery %" },
+      ]
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1">
+              <Label className="text-xs">Staff Member</Label>
+              <Select value={selectedStaff} onValueChange={setSelectedStaff}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Select Staff" />
+                </SelectTrigger>
+                <SelectContent>
+                  {staffList.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name} ({s.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">From Date</Label>
+              <Input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="w-[180px]"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">To Date</Label>
+              <Input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                className="w-[180px]"
+              />
+            </div>
+            <Button onClick={loadReport} disabled={loading || !selectedStaff}>
+              {loading ? "Loading..." : "Generate Report"}
+            </Button>
+            {data.length > 0 && (
+              <Button variant="outline" onClick={handleExport}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Cards */}
+      {data.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {totalDistanceM > 1000
+                  ? `${(totalDistanceM / 1000).toFixed(1)} km`
+                  : `${Math.round(totalDistanceM)} m`}
+              </div>
+              <p className="text-sm text-muted-foreground">Total Distance</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold">
+                {trackingDurationMin > 60
+                  ? `${(trackingDurationMin / 60).toFixed(1)}h`
+                  : `${trackingDurationMin} min`}
+              </div>
+              <p className="text-sm text-muted-foreground">Tracking Duration</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-blue-600">
+                {totalPoints}
+              </div>
+              <p className="text-sm text-muted-foreground">Location Points</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-2xl font-bold text-green-600">
+                {movingPoints}
+              </div>
+              <p className="text-sm text-muted-foreground">Moving Points</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Data Table */}
+      {data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Location Report for {staffName} ({formatDate(fromDate)} to{" "}
+              {formatDate(toDate)})
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                ({data.length} points)
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>Latitude</TableHead>
+                  <TableHead>Longitude</TableHead>
+                  <TableHead>Accuracy</TableHead>
+                  <TableHead>Speed</TableHead>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Moving</TableHead>
+                  <TableHead>Battery</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.slice(0, 100).map((row: any, idx: number) => (
+                  <TableRow key={idx}>
+                    <TableCell className="text-sm">
+                      {formatDateTime(row.recordedAt)}
+                    </TableCell>
+                    <TableCell className="text-sm font-mono">
+                      {parseFloat(row.latitude).toFixed(6)}
+                    </TableCell>
+                    <TableCell className="text-sm font-mono">
+                      {parseFloat(row.longitude).toFixed(6)}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {row.accuracy
+                        ? `${parseFloat(row.accuracy).toFixed(0)}m`
+                        : "-"}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {row.speed
+                        ? `${parseFloat(row.speed).toFixed(1)} m/s`
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {row.source}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {row.isMoving ? (
+                        <span className="text-green-600 font-medium">Yes</span>
+                      ) : (
+                        <span className="text-gray-400">No</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {row.batteryLevel
+                        ? `${parseFloat(row.batteryLevel).toFixed(0)}%`
+                        : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {data.length > 100 && (
+              <div className="py-3 px-4 text-sm text-muted-foreground border-t">
+                Showing first 100 of {data.length} points. Export CSV for full
+                data.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {data.length === 0 && !loading && (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Select a staff member, date range, and click &quot;Generate
+            Report&quot; to view location tracking data
           </CardContent>
         </Card>
       )}
