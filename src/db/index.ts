@@ -15,7 +15,7 @@ function getDb() {
       max: 10,
       idle_timeout: 20,
       connect_timeout: 10,
-      ssl: process.env.DB_SSL === "require" ? "require" : false,
+      ssl: process.env.NODE_ENV === "production" ? "require" : false,
     });
     _db = drizzle(_client, { schema });
   }
