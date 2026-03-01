@@ -22,16 +22,6 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
 
-  if (body.action === "toggleModule") {
-    const result = await permService.toggleModule(
-      session.societyId!,
-      body.moduleKey,
-      body.isEnabled,
-      session.userId
-    );
-    return NextResponse.json({ success: true, module: result });
-  }
-
   if (body.action === "updatePermission") {
     const result = await permService.updatePermission(
       session.societyId!,

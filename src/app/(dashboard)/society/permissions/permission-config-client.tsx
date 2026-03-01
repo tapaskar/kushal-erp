@@ -8,7 +8,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,30 +153,6 @@ export function PermissionConfigClient({
 
   // ─── API Calls ───
 
-  const handleToggleModule = useCallback(
-    async (moduleKey: string, isEnabled: boolean) => {
-      const savingKey = `module::${moduleKey}`;
-      setSaving(savingKey);
-      try {
-        const res = await fetch("/api/society/permissions", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "toggleModule", moduleKey, isEnabled }),
-        });
-        if (res.ok) {
-          setModules((prev) =>
-            prev.map((m) =>
-              m.moduleKey === moduleKey ? { ...m, isEnabled } : m
-            )
-          );
-        }
-      } finally {
-        setSaving(null);
-      }
-    },
-    []
-  );
-
   const handleUpdatePermission = useCallback(
     async (
       role: string,
@@ -220,7 +195,7 @@ export function PermissionConfigClient({
   const handleResetToDefaults = useCallback(async () => {
     if (
       !confirm(
-        "This will reset all module and permission settings to their defaults. Continue?"
+        "This will reset all role permission settings to their defaults. Module configuration will not be affected. Continue?"
       )
     ) {
       return;
@@ -245,57 +220,6 @@ export function PermissionConfigClient({
       setResetting(false);
     }
   }, []);
-
-  // ─── Render: Module Toggles ───
-
-  function renderModulesSection() {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Modules</CardTitle>
-          <CardDescription>
-            Enable or disable modules for your society. Disabled modules will
-            hide their features from all roles.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {modules.map((mod) => (
-              <div
-                key={mod.moduleKey}
-                className="flex items-start justify-between gap-3 rounded-lg border p-4"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
-                      {mod.moduleName}
-                    </span>
-                    <Badge
-                      variant={mod.isEnabled ? "default" : "secondary"}
-                    >
-                      {mod.isEnabled ? "On" : "Off"}
-                    </Badge>
-                  </div>
-                  {mod.description && (
-                    <p className="text-xs text-muted-foreground">
-                      {mod.description}
-                    </p>
-                  )}
-                </div>
-                <Switch
-                  checked={mod.isEnabled}
-                  disabled={saving === `module::${mod.moduleKey}`}
-                  onCheckedChange={(checked) =>
-                    handleToggleModule(mod.moduleKey, checked)
-                  }
-                />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   // ─── Render: Permission Matrix ───
 
@@ -400,14 +324,13 @@ export function PermissionConfigClient({
 
   return (
     <div className="space-y-6">
-      {renderModulesSection()}
-
       <Card>
         <CardHeader>
           <CardTitle>Role Permissions</CardTitle>
           <CardDescription>
             Configure which permissions are granted to each role. Permissions for
-            disabled modules will be greyed out.
+            disabled modules will be greyed out. Module availability is managed
+            by the platform administrator.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { societyModules, societyRolePermissions } from "@/db/schema";
 import { eq, and, sql } from "drizzle-orm";
-import { seedSocietyPermissions } from "@/db/seed/default-permissions";
+import { seedPermissionsOnly } from "@/db/seed/default-permissions";
 
 // ─── Get Society Modules ───
 // List all modules with enabled status for a society, ordered by moduleKey
@@ -129,7 +129,8 @@ export async function getUserPermissions(
 }
 
 // ─── Reset to Defaults ───
-// Delete all existing permissions and modules for the society, then re-seed
+// Delete all existing role permissions and re-seed defaults.
+// Module configuration (managed by super_admin) is NOT affected.
 
 export async function resetToDefaults(
   societyId: string,
@@ -139,9 +140,5 @@ export async function resetToDefaults(
     .delete(societyRolePermissions)
     .where(eq(societyRolePermissions.societyId, societyId));
 
-  await db
-    .delete(societyModules)
-    .where(eq(societyModules.societyId, societyId));
-
-  await seedSocietyPermissions(societyId, configuredBy);
+  await seedPermissionsOnly(societyId, configuredBy);
 }

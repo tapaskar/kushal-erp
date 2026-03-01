@@ -454,7 +454,8 @@ export const DEFAULT_ROLE_PERMISSIONS: PermEntry[] = [
   }),
 ];
 
-// ─── Seed Function ───
+// ─── Seed Function: Full (modules + permissions) ───
+// Used when creating a new society
 
 export async function seedSocietyPermissions(
   societyId: string,
@@ -476,6 +477,17 @@ export async function seedSocietyPermissions(
   }
 
   // 2. Insert role permissions
+  await seedPermissionsOnly(societyId, configuredBy);
+}
+
+// ─── Seed Function: Permissions Only ───
+// Used when society_admin resets permissions to defaults.
+// Does NOT touch module configuration (managed by super_admin).
+
+export async function seedPermissionsOnly(
+  societyId: string,
+  configuredBy?: string
+) {
   for (const perm of DEFAULT_ROLE_PERMISSIONS) {
     await db
       .insert(societyRolePermissions)

@@ -27,7 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Settings2 } from "lucide-react";
 import { createSocietyAsAdmin } from "@/services/admin.service";
 
 interface Props {
@@ -159,12 +159,13 @@ export function SocietiesClient({ societies }: Props) {
                 <TableHead className="text-right">Units</TableHead>
                 <TableHead className="text-right">Admins</TableHead>
                 <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                     No societies found
                   </TableCell>
                 </TableRow>
@@ -185,6 +186,14 @@ export function SocietiesClient({ societies }: Props) {
                     <TableCell className="text-right">{adminCount}</TableCell>
                     <TableCell>
                       {new Date(society.createdAt).toLocaleDateString("en-IN")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link href={`/admin/societies/${society.id}/modules`}>
+                        <Button variant="outline" size="sm">
+                          <Settings2 className="mr-1 h-3 w-3" />
+                          Modules
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))
