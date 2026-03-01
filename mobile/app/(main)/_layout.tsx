@@ -15,6 +15,8 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
     "cleaning/index": "cleaning",
     "inventory/index": "inventory",
     "reports/index": "reports",
+    "nfa/index": "document-text",
+    approvals: "checkmark-done",
   };
   return (
     <Icon
@@ -27,13 +29,23 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
 }
 
 export default function MainLayout() {
-  const staff = useAuthStore((s) => s.staff);
+  const { staff, userType, hasPermission } = useAuthStore();
+
+  const isUserType = userType === "user";
   const role = staff?.role || "";
 
+  // Staff role checks (only relevant for staff)
   const isSecurity = role === "security";
   const isHousekeeping = role === "housekeeping";
   const isSupervisor = role === "supervisor";
   const isTechnical = ["maintenance", "electrician", "plumber"].includes(role);
+
+  // User permission checks
+  const canViewNFA = isUserType && hasPermission("nfa_procurement.view");
+  const canApprove =
+    isUserType &&
+    (hasPermission("nfa_procurement.approve_exec") ||
+      hasPermission("nfa_procurement.approve_treasurer"));
 
   // Shared options for hidden detail screens
   const detailScreen = (title: string) => ({
@@ -65,7 +77,7 @@ export default function MainLayout() {
         headerShadowVisible: false,
       }}
     >
-      {/* ── Core tabs (all roles) ── */}
+      {/* ── Dashboard (all roles) ── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -75,10 +87,37 @@ export default function MainLayout() {
           ),
         }}
       />
+
+      {/* ── NFA tab (user roles with nfa_procurement.view) ── */}
+      <Tabs.Screen
+        name="nfa/index"
+        options={{
+          title: "NFA",
+          href: canViewNFA ? "/(main)/nfa" : null,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="nfa/index" focused={focused} />
+          ),
+        }}
+      />
+
+      {/* ── Approvals tab (user roles with approve permissions) ── */}
+      <Tabs.Screen
+        name="approvals"
+        options={{
+          title: "Approvals",
+          href: canApprove ? "/(main)/approvals" : null,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="approvals" focused={focused} />
+          ),
+        }}
+      />
+
+      {/* ── Tasks tab (staff only) ── */}
       <Tabs.Screen
         name="tasks/index"
         options={{
           title: "Tasks",
+          href: !isUserType ? "/(main)/tasks" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="tasks/index" focused={focused} />
           ),
@@ -90,7 +129,7 @@ export default function MainLayout() {
         name="visitors/index"
         options={{
           title: "Visitors",
-          href: isSecurity ? "/(main)/visitors" : null,
+          href: !isUserType && isSecurity ? "/(main)/visitors" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="visitors/index" focused={focused} />
           ),
@@ -102,7 +141,10 @@ export default function MainLayout() {
         name="patrol/index"
         options={{
           title: "Patrol",
-          href: isSecurity || isTechnical || isSupervisor ? "/(main)/patrol" : null,
+          href:
+            !isUserType && (isSecurity || isTechnical || isSupervisor)
+              ? "/(main)/patrol"
+              : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="patrol/index" focused={focused} />
           ),
@@ -114,7 +156,7 @@ export default function MainLayout() {
         name="cleaning/index"
         options={{
           title: "Cleaning",
-          href: isHousekeeping ? "/(main)/cleaning" : null,
+          href: !isUserType && isHousekeeping ? "/(main)/cleaning" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="cleaning/index" focused={focused} />
           ),
@@ -126,18 +168,22 @@ export default function MainLayout() {
         name="inventory/index"
         options={{
           title: "Inventory",
-          href: isSupervisor || role === "gardener" ? "/(main)/inventory" : null,
+          href:
+            !isUserType && (isSupervisor || role === "gardener")
+              ? "/(main)/inventory"
+              : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="inventory/index" focused={focused} />
           ),
         }}
       />
 
-      {/* ── Shifts tab (all roles) ── */}
+      {/* ── Shifts tab (staff only) ── */}
       <Tabs.Screen
         name="shifts/index"
         options={{
           title: "Shifts",
+          href: !isUserType ? "/(main)/shifts" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="shifts/index" focused={focused} />
           ),
@@ -149,7 +195,7 @@ export default function MainLayout() {
         name="reports/index"
         options={{
           title: "Reports",
-          href: isSupervisor ? "/(main)/reports" : null,
+          href: !isUserType && isSupervisor ? "/(main)/reports" : null,
           tabBarIcon: ({ focused }) => (
             <TabIcon name="reports/index" focused={focused} />
           ),
@@ -184,6 +230,8 @@ export default function MainLayout() {
       <Tabs.Screen name="reports/attendance" options={detailScreen("Attendance Report")} />
       <Tabs.Screen name="reports/cleaning" options={detailScreen("Cleaning Report")} />
       <Tabs.Screen name="reports/security" options={detailScreen("Security Report")} />
+      <Tabs.Screen name="nfa/create" options={detailScreen("Create NFA")} />
+      <Tabs.Screen name="nfa/[nfaId]" options={detailScreen("NFA Detail")} />
     </Tabs>
   );
 }

@@ -5,19 +5,23 @@ import { useRouter } from "expo-router";
 import { useAuthStore } from "../../src/store/auth-store";
 import { useShiftStore } from "../../src/store/shift-store";
 import { useTaskStore } from "../../src/store/task-store";
-import { STAFF_ROLES, SHIFT_STATUS_LABELS } from "../../src/lib/constants";
+import { STAFF_ROLES, SHIFT_STATUS_LABELS, USER_ROLES, NFA_STATUS_COLORS } from "../../src/lib/constants";
 import { Card } from "../../src/components/ui/Card";
 import { Badge } from "../../src/components/ui/Badge";
 import { Icon, type IconName } from "../../src/components/ui/Icon";
 import { colors, typography, spacing, radii, shadows } from "../../src/theme";
+import * as nfaApi from "../../src/api/nfa";
+import type { NFA, NFAStats } from "../../src/lib/types";
 
 interface QuickAction {
   icon: IconName;
   label: string;
   route: string;
+  permission?: string;
 }
 
-function getQuickActions(role: string): QuickAction[] {
+// ── Staff dashboard quick actions ──
+function getStaffQuickActions(role: string): QuickAction[] {
   const viewTasks: QuickAction = { icon: "tasks", label: "View Tasks", route: "/(main)/tasks" };
   const startPatrol: QuickAction = { icon: "shield", label: "Start Patrol", route: "/(main)/patrol" };
   const shiftHistory: QuickAction = { icon: "clock", label: "Shift History", route: "/(main)/shifts" };
@@ -45,7 +49,194 @@ function getQuickActions(role: string): QuickAction[] {
   }
 }
 
-export default function DashboardScreen() {
+// ── Admin/User dashboard quick actions ──
+function getUserQuickActions(hasPermission: (p: string) => boolean): QuickAction[] {
+  const actions: QuickAction[] = [];
+  if (hasPermission("nfa_procurement.create")) {
+    actions.push({ icon: "document-text", label: "Create NFA", route: "/(main)/nfa/create" });
+  }
+  if (hasPermission("nfa_procurement.approve_exec") || hasPermission("nfa_procurement.approve_treasurer")) {
+    actions.push({ icon: "checkmark-done", label: "Approvals", route: "/(main)/approvals" });
+  }
+  if (hasPermission("nfa_procurement.view")) {
+    actions.push({ icon: "receipt", label: "View NFAs", route: "/(main)/nfa" });
+  }
+  if (hasPermission("staff_management.view")) {
+    actions.push({ icon: "visitors", label: "Staff Overview", route: "/(main)/tasks" });
+  }
+  return actions.slice(0, 4);
+}
+
+// ═══════════════════════════════════════════
+// Admin / RWA Body Dashboard
+// ═══════════════════════════════════════════
+function AdminDashboard() {
+  const { user, society, hasPermission } = useAuthStore();
+  const [stats, setStats] = useState<NFAStats | null>(null);
+  const [recentNFAs, setRecentNFAs] = useState<NFA[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+
+  const loadData = async () => {
+    try {
+      const [statsData, nfaData] = await Promise.all([
+        hasPermission("nfa_procurement.view") ? nfaApi.getNFAStats() : null,
+        hasPermission("nfa_procurement.view") ? nfaApi.getNFAs(undefined, 5) : null,
+      ]);
+      if (statsData) setStats(statsData.stats || statsData);
+      if (nfaData) setRecentNFAs(nfaData.nfas || []);
+    } catch (e) {
+      console.error("Failed to load dashboard data:", e);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  };
+
+  const statCards = stats
+    ? [
+        { count: stats.draft, label: "Draft", color: "#94a3b8", bg: colors.surfaceSecondary },
+        { count: stats.pending, label: "Pending", color: colors.warningDark, bg: colors.warningBg },
+        { count: stats.approved, label: "Approved", color: colors.successDark, bg: colors.successBg },
+        { count: stats.completed, label: "Completed", color: colors.infoDark, bg: colors.infoBg },
+      ]
+    : [];
+
+  const quickActions = getUserQuickActions(hasPermission);
+
+  return (
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+    >
+      {/* Welcome Card */}
+      <LinearGradient
+        colors={[colors.primaryDark, colors.primary]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.welcomeCard}
+      >
+        <View style={styles.welcomeRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.greeting}>
+              Hello, {user?.name?.split(" ")[0] || "Admin"}
+            </Text>
+            <Text style={styles.role}>
+              {USER_ROLES[user?.role || ""] || user?.role} at{" "}
+              {society?.name || "Society"}
+            </Text>
+          </View>
+          <View style={styles.welcomeIconCircle}>
+            <Icon name="briefcase" size={28} color={colors.primary} filled />
+          </View>
+        </View>
+      </LinearGradient>
+
+      {/* NFA Stats */}
+      {stats && hasPermission("nfa_procurement.view") && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>NFA Overview</Text>
+          <View style={styles.statsRow}>
+            {statCards.map((s) => (
+              <Card
+                key={s.label}
+                variant="outlined"
+                padding="md"
+                onPress={() => router.push("/(main)/nfa")}
+                style={[styles.statCard, { backgroundColor: s.bg }]}
+              >
+                <Text style={[styles.statNumber, { color: s.color }]}>
+                  {s.count}
+                </Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </Card>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Quick Actions */}
+      {quickActions.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.actionsGrid}>
+            {quickActions.map((action) => (
+              <Card
+                key={action.label}
+                onPress={() => router.push(action.route as any)}
+                style={styles.actionButton}
+              >
+                <View style={styles.actionIconCircle}>
+                  <Icon name={action.icon} size={24} color={colors.primary} />
+                </View>
+                <Text style={styles.actionLabel}>{action.label}</Text>
+              </Card>
+            ))}
+          </View>
+        </View>
+      )}
+
+      {/* Recent NFAs */}
+      {recentNFAs.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recent NFAs</Text>
+            <Card
+              padding="none"
+              onPress={() => router.push("/(main)/nfa")}
+            >
+              <Text style={styles.viewAllText}>View All</Text>
+            </Card>
+          </View>
+          {recentNFAs.map((nfa) => (
+            <Card
+              key={nfa.id}
+              variant="outlined"
+              padding="md"
+              onPress={() => router.push(`/(main)/nfa/${nfa.id}` as any)}
+              style={styles.recentCard}
+            >
+              <View style={styles.recentRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.recentRef}>{nfa.referenceNo}</Text>
+                  <Text style={styles.recentTitle} numberOfLines={1}>
+                    {nfa.title}
+                  </Text>
+                </View>
+                <Badge
+                  label={nfa.status.replace(/_/g, " ")}
+                  color={NFA_STATUS_COLORS[nfa.status] || colors.textMuted}
+                  size="sm"
+                />
+              </View>
+            </Card>
+          ))}
+        </View>
+      )}
+
+      <View style={{ height: spacing.xxxl }} />
+    </ScrollView>
+  );
+}
+
+// ═══════════════════════════════════════════
+// Staff Dashboard (existing)
+// ═══════════════════════════════════════════
+function StaffDashboard() {
   const { staff, society } = useAuthStore();
   const { currentShift, fetchCurrentShift } = useShiftStore();
   const { tasks, fetchTasks } = useTaskStore();
@@ -72,7 +263,7 @@ export default function DashboardScreen() {
   const inProgressTasks = tasks.filter((t) => t.status === "in_progress");
   const completedTasks = tasks.filter((t) => t.status === "completed");
 
-  const statCards = [
+  const taskStatCards = [
     { count: pendingTasks.length, label: "Pending", color: colors.warningDark, bg: colors.warningBg, icon: "clock" as IconName },
     { count: inProgressTasks.length, label: "In Progress", color: colors.infoDark, bg: colors.infoBg, icon: "refresh" as IconName },
     { count: completedTasks.length, label: "Completed", color: colors.successDark, bg: colors.successBg, icon: "check-circle" as IconName },
@@ -90,7 +281,7 @@ export default function DashboardScreen() {
         />
       }
     >
-      {/* ── Welcome Card ── */}
+      {/* Welcome Card */}
       <LinearGradient
         colors={[colors.primaryDark, colors.primary]}
         start={{ x: 0, y: 0 }}
@@ -113,7 +304,7 @@ export default function DashboardScreen() {
         </View>
       </LinearGradient>
 
-      {/* ── Current Shift ── */}
+      {/* Current Shift */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Today's Shift</Text>
         {currentShift ? (
@@ -168,11 +359,11 @@ export default function DashboardScreen() {
         )}
       </View>
 
-      {/* ── Task Summary ── */}
+      {/* Task Summary */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Tasks</Text>
         <View style={styles.statsRow}>
-          {statCards.map((s) => (
+          {taskStatCards.map((s) => (
             <Card
               key={s.label}
               variant="outlined"
@@ -192,11 +383,11 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      {/* ── Quick Actions ── */}
+      {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsGrid}>
-          {getQuickActions(staff?.role || "").map((action) => (
+          {getStaffQuickActions(staff?.role || "").map((action) => (
             <Card
               key={action.label}
               onPress={() => router.push(action.route as any)}
@@ -214,6 +405,19 @@ export default function DashboardScreen() {
       <View style={{ height: spacing.xxxl }} />
     </ScrollView>
   );
+}
+
+// ═══════════════════════════════════════════
+// Main Dashboard — routes based on userType
+// ═══════════════════════════════════════════
+export default function DashboardScreen() {
+  const userType = useAuthStore((s) => s.userType);
+
+  if (userType === "user") {
+    return <AdminDashboard />;
+  }
+
+  return <StaffDashboard />;
 }
 
 const styles = StyleSheet.create({
@@ -250,10 +454,21 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: 0,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
     ...typography.subtitle,
     color: colors.textPrimary,
     marginBottom: spacing.md,
+  },
+  viewAllText: {
+    ...typography.captionSemibold,
+    color: colors.primary,
+    paddingHorizontal: spacing.sm,
   },
   shiftRow: {
     flexDirection: "row",
@@ -319,5 +534,23 @@ const styles = StyleSheet.create({
   actionLabel: {
     ...typography.captionMedium,
     color: colors.textSecondary,
+  },
+  recentCard: {
+    marginBottom: spacing.sm,
+  },
+  recentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  recentRef: {
+    ...typography.captionSemibold,
+    color: colors.primary,
+    fontSize: 11,
+  },
+  recentTitle: {
+    ...typography.captionMedium,
+    color: colors.textPrimary,
+    marginTop: 2,
   },
 });

@@ -236,3 +236,86 @@ export interface LocationPoint {
   isMoving?: boolean;
   recordedAt: string;
 }
+
+// ─── User Profile (for non-staff users) ───
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: string;
+  avatarUrl?: string;
+  isActive: boolean;
+}
+
+// ─── NFA (Note for Approval) ───
+
+export interface NFA {
+  id: string;
+  referenceNo: string;
+  title: string;
+  description?: string;
+  category?: string;
+  priority: "low" | "normal" | "urgent";
+  status: "draft" | "pending_exec" | "pending_treasurer" | "approved" | "po_created" | "completed" | "rejected" | "cancelled";
+  totalEstimatedAmount?: number;
+  requiredExecApprovals: number;
+  currentExecApprovals: number;
+  currentExecRejections: number;
+  items: NFAItem[];
+  approvals: NFAApproval[];
+  createdBy: string;
+  creatorName?: string;
+  treasurerApprovedBy?: string;
+  treasurerApproverName?: string;
+  treasurerApprovedAt?: string;
+  treasurerRemarks?: string;
+  purchaseOrderId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NFAItem {
+  id: string;
+  itemName: string;
+  specification?: string;
+  quantity: number;
+  unit?: string;
+  l1VendorName?: string;
+  l1UnitPrice?: number;
+  l1TotalPrice?: number;
+  l2VendorName?: string;
+  l2UnitPrice?: number;
+  l2TotalPrice?: number;
+  l3VendorName?: string;
+  l3UnitPrice?: number;
+  l3TotalPrice?: number;
+  selectedQuote?: "l1" | "l2" | "l3";
+  justification?: string;
+}
+
+export interface NFAApproval {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  action: "approved" | "rejected";
+  remarks?: string;
+  createdAt: string;
+}
+
+export interface NFAStats {
+  draft: number;
+  pending: number;
+  approved: number;
+  completed: number;
+  rejected: number;
+  total: number;
+}
+
+export interface ModuleInfo {
+  moduleKey: string;
+  moduleName: string;
+  isEnabled: boolean;
+}

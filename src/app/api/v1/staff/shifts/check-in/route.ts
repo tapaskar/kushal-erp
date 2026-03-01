@@ -11,6 +11,10 @@ export async function POST(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { shiftId, lat, lng, photoUrl } = await request.json();
     if (!shiftId || !lat || !lng) {
       return NextResponse.json({ error: "shiftId, lat, and lng are required" }, { status: 400 });

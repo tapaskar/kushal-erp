@@ -7,6 +7,10 @@ export async function POST(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { events } = await request.json();
     if (!Array.isArray(events) || events.length === 0) {
       return NextResponse.json({ error: "events array is required" }, { status: 400 });
@@ -21,7 +25,7 @@ export async function POST(request: Request) {
       recordedAt: string;
     }) => ({
       societyId: session.societyId,
-      staffId: session.staffId,
+      staffId: session.staffId!,
       beaconId: e.beaconId,
       shiftId: e.shiftId,
       eventType: e.eventType,

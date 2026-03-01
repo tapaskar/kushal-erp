@@ -14,6 +14,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!session.staffId) {
+      return NextResponse.json(
+        { error: "Not a staff session" },
+        { status: 400 }
+      );
+    }
+
     // Verify staff still exists and is active
     const [staffMember] = await db
       .select()
@@ -32,6 +39,7 @@ export async function POST(request: Request) {
 
     const token = await createMobileToken({
       userId: staffMember.userId || staffMember.id,
+      userType: "staff",
       staffId: staffMember.id,
       staffRole: staffMember.role,
       name: staffMember.name,

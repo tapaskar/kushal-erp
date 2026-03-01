@@ -7,6 +7,10 @@ export async function GET(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const shift = await staffService.getCurrentShift(session.staffId);
     return NextResponse.json({ shift: shift || null });
   } catch (error) {

@@ -7,6 +7,10 @@ export async function GET(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("from") || undefined;
     const to = searchParams.get("to") || undefined;

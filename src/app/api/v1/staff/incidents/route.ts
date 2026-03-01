@@ -7,6 +7,10 @@ export async function GET(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const incidents = await securityService.getIncidentsByStaff(session.staffId);
     return NextResponse.json({ incidents });
   } catch (error) {
@@ -19,6 +23,10 @@ export async function POST(request: Request) {
   try {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
 
     const body = await request.json();
     const incident = await securityService.createIncident({

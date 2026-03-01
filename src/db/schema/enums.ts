@@ -7,6 +7,13 @@ export const userRoleEnum = pgEnum("user_role", [
   "treasurer",
   "committee_member",
   "resident",
+  "estate_manager",
+  "president",
+  "vice_president",
+  "secretary",
+  "joint_secretary",
+  "joint_treasurer",
+  "executive_member",
 ]);
 
 // --- Society Structure ---
@@ -320,6 +327,23 @@ export const incidentStatusEnum = pgEnum("incident_status", [
   "investigating",
   "resolved",
   "escalated",
+]);
+
+// --- NFA (Note for Approval) ---
+export const nfaStatusEnum = pgEnum("nfa_status", [
+  "draft",
+  "pending_exec",
+  "pending_treasurer",
+  "approved",
+  "po_created",
+  "completed",
+  "rejected",
+  "cancelled",
+]);
+
+export const nfaApprovalActionEnum = pgEnum("nfa_approval_action", [
+  "approved",
+  "rejected",
 ]);
 
 // --- Housekeeping ---

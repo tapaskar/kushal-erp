@@ -8,6 +8,10 @@ export async function POST(request: Request) {
     if (!session)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { beaconId } = await request.json();
     if (!beaconId) {
       return NextResponse.json(

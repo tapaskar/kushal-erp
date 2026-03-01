@@ -11,6 +11,13 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!session.staffId) {
+      return NextResponse.json(
+        { error: "Not a staff session" },
+        { status: 400 }
+      );
+    }
+
     const { consent } = await request.json();
 
     if (consent) {

@@ -53,8 +53,8 @@ export default function LoginScreen() {
         >
           <Icon name="home" size={32} color={colors.textOnPrimary} filled />
         </LinearGradient>
-        <Text style={styles.title}>Kushal-RWA</Text>
-        <Text style={styles.subtitle}>Staff Tracker</Text>
+        <Text style={styles.title}>KushalRWA</Text>
+        <Text style={styles.subtitle}>Society Management</Text>
       </View>
 
       <Card variant="elevated" padding="xl">

@@ -6,7 +6,8 @@ import { View, ActivityIndicator } from "react-native";
 import { colors } from "../src/theme";
 
 export default function RootLayout() {
-  const { isAuthenticated, isLoading, initialize, staff } = useAuthStore();
+  const { isAuthenticated, isLoading, initialize, staff, userType } =
+    useAuthStore();
   const segments = useSegments();
   const router = useRouter();
 
@@ -22,8 +23,8 @@ export default function RootLayout() {
     if (!isAuthenticated && !inAuthGroup) {
       router.replace("/(auth)/login");
     } else if (isAuthenticated && inAuthGroup) {
-      // Check if consent is needed
-      if (staff && !staff.consentGiven) {
+      // Only staff needs consent screen; user roles skip consent
+      if (userType === "staff" && staff && !staff.consentGiven) {
         router.replace("/(auth)/consent");
       } else {
         router.replace("/(main)");

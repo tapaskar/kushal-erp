@@ -11,6 +11,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     // Get staff's society
     const [staffMember] = await db
       .select({ societyId: staff.societyId })

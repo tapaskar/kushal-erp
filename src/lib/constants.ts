@@ -1,4 +1,4 @@
-export const APP_NAME = "Kushal-RWA";
+export const APP_NAME = "KushalRWA";
 
 export const COMPLAINT_CATEGORIES = [
   "Plumbing",
@@ -31,6 +31,7 @@ export const COMPLAINT_SLA_HOURS: Record<string, number> = {
 export const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: "LayoutDashboard" },
   { label: "Society", href: "/society", icon: "Building2" },
+  { label: "Permissions", href: "/society/permissions", icon: "Shield" },
   { label: "Members", href: "/members", icon: "Users" },
   { label: "Billing", href: "/billing", icon: "Receipt" },
   { label: "Payments", href: "/payments", icon: "CreditCard" },

@@ -10,6 +10,10 @@ export async function PUT(
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { logId } = await params;
     const log = await hkService.startCleaning(logId, session.staffId);
     return NextResponse.json({ log });

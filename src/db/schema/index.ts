@@ -14,3 +14,5 @@ export * from "./staff";
 export * from "./security";
 export * from "./housekeeping";
 export * from "./material-usage";
+export * from "./rbac";
+export * from "./nfa";

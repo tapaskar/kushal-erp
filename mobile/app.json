@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "RWA Staff Tracker",
+    "name": "KushalRWA",
     "slug": "rwa-staff-tracker",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -43,16 +43,17 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow RWA Staff Tracker to use your location during shifts for patrol tracking.",
+          "locationAlwaysAndWhenInUsePermission": "Allow KushalRWA to use your location during shifts for patrol tracking.",
           "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow RWA Staff Tracker to use the camera for check-in photos and task verification."
+          "cameraPermission": "Allow KushalRWA to use the camera for check-in photos and task verification."
         }
-      ]
+      ],
+      "expo-sharing"
     ]
   }
 }

@@ -7,6 +7,10 @@ export async function GET(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || undefined;
 
@@ -25,6 +29,10 @@ export async function POST(request: Request) {
   try {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
 
     const body = await request.json();
     const supplyRequest = await hkService.createSupplyRequest({

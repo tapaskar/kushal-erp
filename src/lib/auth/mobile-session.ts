@@ -6,8 +6,13 @@ const SECRET = new TextEncoder().encode(
 
 export interface MobileSessionPayload {
   userId: string;
-  staffId: string;
-  staffRole: string;
+  userType: "staff" | "user";
+  // Staff fields (when userType = "staff")
+  staffId?: string;
+  staffRole?: string;
+  // User fields (when userType = "user")
+  userRole?: string;
+  // Common fields
   name: string;
   phone: string;
   email?: string;

@@ -93,6 +93,14 @@ export async function createSocietyAsAdmin(data: {
     .values(data)
     .returning();
 
+  // Seed default RBAC permissions for the new society
+  try {
+    const { seedSocietyPermissions } = await import("@/db/seed/default-permissions");
+    await seedSocietyPermissions(society.id);
+  } catch (e) {
+    console.error("Failed to seed permissions for new society:", e);
+  }
+
   revalidatePath("/admin/societies");
   return society;
 }

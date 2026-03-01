@@ -29,7 +29,19 @@ export type IconName =
   | "star"
   | "calendar"
   | "document"
-  | "settings";
+  | "settings"
+  | "document-text"
+  | "checkmark-done"
+  | "briefcase"
+  | "wallet"
+  | "download"
+  | "chatbubble"
+  | "people-circle"
+  | "megaphone"
+  | "receipt"
+  | "eye"
+  | "trash"
+  | "create";
 
 // Mapping from semantic name → Ionicons glyph (outline + filled)
 const ioniconsMap: Record<
@@ -62,6 +74,18 @@ const ioniconsMap: Record<
   calendar: { outline: "calendar-outline", filled: "calendar" },
   document: { outline: "document-text-outline", filled: "document-text" },
   settings: { outline: "settings-outline", filled: "settings" },
+  "document-text": { outline: "document-text-outline", filled: "document-text" },
+  "checkmark-done": { outline: "checkmark-done-outline", filled: "checkmark-done" },
+  briefcase: { outline: "briefcase-outline", filled: "briefcase" },
+  wallet: { outline: "wallet-outline", filled: "wallet" },
+  download: { outline: "download-outline", filled: "download" },
+  chatbubble: { outline: "chatbubble-outline", filled: "chatbubble" },
+  "people-circle": { outline: "people-circle-outline", filled: "people-circle" },
+  megaphone: { outline: "megaphone-outline", filled: "megaphone" },
+  receipt: { outline: "receipt-outline", filled: "receipt" },
+  eye: { outline: "eye-outline", filled: "eye" },
+  trash: { outline: "trash-outline", filled: "trash" },
+  create: { outline: "create-outline", filled: "create" },
 };
 
 // Icons that use MaterialCommunityIcons instead

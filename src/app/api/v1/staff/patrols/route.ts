@@ -7,6 +7,10 @@ export async function GET(request: Request) {
     const session = await getMobileSession(request);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    if (!session.staffId) {
+      return NextResponse.json({ error: "Not a staff session" }, { status: 400 });
+    }
+
     const patrols = await staffService.getPatrolLogsForStaff(session.staffId);
     return NextResponse.json({ patrols });
   } catch (error) {
