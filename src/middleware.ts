@@ -54,13 +54,23 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
 
-    // Super admin visiting / (dashboard root) → redirect to /admin
-    if (role === "super_admin" && pathname === "/") {
+    // Super admin visiting / or /resident → redirect to /admin
+    if (role === "super_admin" && (pathname === "/" || pathname.startsWith("/resident"))) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
 
     // Non-super-admin visiting /admin → redirect to /
     if (role !== "super_admin" && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
+    // Resident visiting / or society admin pages → redirect to /resident
+    if (role === "resident" && (pathname === "/" || SOCIETY_PATHS.some((p) => pathname.startsWith(p)))) {
+      return NextResponse.redirect(new URL("/resident", request.url));
+    }
+
+    // Non-resident visiting /resident → redirect to /
+    if (role !== "resident" && pathname.startsWith("/resident")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
 

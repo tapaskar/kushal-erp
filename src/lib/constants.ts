@@ -163,6 +163,14 @@ export const ADMIN_NAV_ITEMS = [
   { label: "Users", href: "/admin/users", icon: "Users" },
 ] as const;
 
+export const RESIDENT_NAV_ITEMS = [
+  { label: "Dashboard", href: "/resident", icon: "LayoutDashboard" },
+  { label: "Financials", href: "/resident/financials", icon: "IndianRupee" },
+  { label: "Collection", href: "/resident/collection", icon: "CreditCard" },
+  { label: "Complaints", href: "/resident/complaints", icon: "MessageSquare" },
+  { label: "Notices", href: "/resident/notices", icon: "Bell" },
+] as const;
+
 export const STAFF_ROLES = [
   { value: "security", label: "Security" },
   { value: "housekeeping", label: "Housekeeping" },
